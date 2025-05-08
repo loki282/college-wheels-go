@@ -1,10 +1,17 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Ride, RideSchedule, RideShare, QuickRoute } from './types';
+import { Ride, RideSchedule, RideShare, QuickRoute, RoutePreview } from './types';
 
 // Quick Ride Functions
 export async function getQuickRoutes() {
     try {
+        // This table doesn't exist yet in the database schema
+        // Return empty array for now to prevent errors
+        console.log('Attempting to fetch quick routes, but table may not exist yet');
+        return [] as QuickRoute[];
+        
+        /* Uncomment when table exists
         const { data, error } = await supabase
             .from('quick_routes')
             .select('*')
@@ -12,6 +19,7 @@ export async function getQuickRoutes() {
 
         if (error) throw error;
         return data as QuickRoute[];
+        */
     } catch (error) {
         console.error('Error fetching quick routes:', error);
         toast.error('Failed to load quick routes');
@@ -21,6 +29,12 @@ export async function getQuickRoutes() {
 
 export async function createQuickRide(route: Omit<QuickRoute, 'id' | 'created_at' | 'updated_at'>) {
     try {
+        // This table doesn't exist yet in the database schema
+        console.log('Attempting to create quick route, but table may not exist yet');
+        toast.error('Quick routes feature is not yet available');
+        return null;
+        
+        /* Uncomment when table exists
         const { data, error } = await supabase
             .from('quick_routes')
             .insert(route)
@@ -29,6 +43,7 @@ export async function createQuickRide(route: Omit<QuickRoute, 'id' | 'created_at
 
         if (error) throw error;
         return data as QuickRoute;
+        */
     } catch (error) {
         console.error('Error creating quick route:', error);
         toast.error('Failed to create quick route');
@@ -39,6 +54,12 @@ export async function createQuickRide(route: Omit<QuickRoute, 'id' | 'created_at
 // Scheduled Ride Functions
 export async function createScheduledRide(ride: Partial<Ride>, schedule: Omit<RideSchedule, 'id' | 'created_at' | 'updated_at'>) {
     try {
+        // This table doesn't exist yet in the database schema
+        console.log('Attempting to create scheduled ride, but related tables may not exist yet');
+        toast.error('Scheduled rides feature is not yet available');
+        return null;
+        
+        /* Uncomment when tables exist
         const { data: rideData, error: rideError } = await supabase
             .from('rides')
             .insert({
@@ -63,6 +84,7 @@ export async function createScheduledRide(ride: Partial<Ride>, schedule: Omit<Ri
         if (scheduleError) throw scheduleError;
 
         return { ride: rideData, schedule: scheduleData };
+        */
     } catch (error) {
         console.error('Error creating scheduled ride:', error);
         toast.error('Failed to create scheduled ride');
@@ -72,17 +94,23 @@ export async function createScheduledRide(ride: Partial<Ride>, schedule: Omit<Ri
 
 export async function getScheduledRides() {
     try {
+        // This table doesn't exist yet in the database schema
+        console.log('Attempting to fetch scheduled rides, but related tables may not exist yet');
+        return [];
+        
+        /* Uncomment when tables exist
         const { data, error } = await supabase
             .from('rides')
             .select(`
-        *,
-        schedule:ride_schedules(*)
-      `)
+                *,
+                schedule:ride_schedules(*)
+            `)
             .eq('is_scheduled', true)
             .order('scheduled_for', { ascending: true });
 
         if (error) throw error;
         return data;
+        */
     } catch (error) {
         console.error('Error fetching scheduled rides:', error);
         toast.error('Failed to load scheduled rides');
@@ -93,6 +121,12 @@ export async function getScheduledRides() {
 // Ride Sharing Functions
 export async function shareRide(rideId: string, sharedWithId: string) {
     try {
+        // This table doesn't exist yet in the database schema
+        console.log('Attempting to share ride, but related tables may not exist yet');
+        toast.error('Ride sharing feature is not yet available');
+        return null;
+        
+        /* Uncomment when tables exist
         const { data: sessionData } = await supabase.auth.getSession();
         if (!sessionData.session?.user) {
             toast.error('You must be logged in to share rides');
@@ -111,6 +145,7 @@ export async function shareRide(rideId: string, sharedWithId: string) {
 
         if (error) throw error;
         return data as RideShare;
+        */
     } catch (error) {
         console.error('Error sharing ride:', error);
         toast.error('Failed to share ride');
@@ -120,19 +155,25 @@ export async function shareRide(rideId: string, sharedWithId: string) {
 
 export async function getSharedRides() {
     try {
+        // This table doesn't exist yet in the database schema
+        console.log('Attempting to fetch shared rides, but related tables may not exist yet');
+        return [];
+        
+        /* Uncomment when tables exist
         const { data: sessionData } = await supabase.auth.getSession();
         if (!sessionData.session?.user) return [];
 
         const { data, error } = await supabase
             .from('ride_shares')
             .select(`
-        *,
-        ride:rides(*)
-      `)
+                *,
+                ride:rides(*)
+            `)
             .or(`sharer_id.eq.${sessionData.session.user.id},shared_with_id.eq.${sessionData.session.user.id}`);
 
         if (error) throw error;
         return data;
+        */
     } catch (error) {
         console.error('Error fetching shared rides:', error);
         toast.error('Failed to load shared rides');

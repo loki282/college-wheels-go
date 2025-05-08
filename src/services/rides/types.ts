@@ -1,3 +1,4 @@
+
 import { Profile } from '../profileService';
 
 export interface Ride {
@@ -5,14 +6,14 @@ export interface Ride {
   driver_id: string;
   from_location: string;
   to_location: string;
-  from_coordinates: {
+  from_coordinates?: {
     lat: number;
     lng: number;
-  };
-  to_coordinates: {
+  } | string;
+  to_coordinates?: {
     lat: number;
     lng: number;
-  };
+  } | string;
   departure_date: string;
   departure_time: string;
   available_seats: number;
@@ -57,8 +58,14 @@ export interface QuickRoute {
   id: string;
   from_location: string;
   to_location: string;
-  from_coordinates: string;
-  to_coordinates: string;
+  from_coordinates: {
+    lat: number;
+    lng: number;
+  } | string;
+  to_coordinates: {
+    lat: number;
+    lng: number;
+  } | string;
   distance: number;
   estimated_duration: number;
   is_active: boolean;

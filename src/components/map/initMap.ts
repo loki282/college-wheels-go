@@ -1,3 +1,4 @@
+
 interface MapOptions {
   zoom?: number;
   center?: { lat: number; lng: number };
@@ -40,9 +41,6 @@ export const initMap = async (
     };
 
     const map = new window.google.maps.Map(container, mapOptions);
-
-    // No longer using NavigationControl as it doesn't exist
-    // Just use the built-in controls via mapOptions
 
     // Handle map load event
     window.google.maps.event.addListenerOnce(map, 'idle', () => {

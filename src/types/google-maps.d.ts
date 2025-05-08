@@ -8,6 +8,7 @@ declare global {
         Map: new (element: HTMLElement, options: any) => any;
         Marker: new (options: any) => any;
         LatLng: new (lat: number, lng: number) => any;
+        LatLngBounds: new () => any;
         places: {
           AutocompleteService: new () => any;
           PlacesService: new (element: HTMLElement) => any;
@@ -19,6 +20,8 @@ declare global {
           removeListener: (listener: any) => void;
           addListenerOnce: (instance: any, eventName: string, handler: Function) => any;
           addDomListener: (instance: any, eventName: string, handler: Function) => any;
+          trigger: (instance: any, eventName: string) => void;
+          clearListeners: (instance: any, eventName: string) => void;
         };
         ControlPosition: {
           TOP_RIGHT: number;
@@ -41,12 +44,15 @@ declare global {
           TRANSIT: string;
         };
         DirectionsService: new () => any;
+        DirectionsStatus: Record<string, string>;
         DirectionsRenderer: new (options?: any) => any;
         geometry: {
           encoding: {
             decodePath: (path: string) => any[];
           };
         };
+        Polyline: new (options: any) => any;
+        MapMouseEvent: any;
       };
     };
   }

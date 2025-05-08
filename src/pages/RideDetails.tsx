@@ -11,7 +11,7 @@ import {
   User as UserIcon,
   Star as StarIcon,
 } from "lucide-react";
-import RideMap from "@/components/map/RideMap";
+import { RideMap } from "@/components/map/RideMap";
 import { RidePassengers } from "@/components/rides/RidePassengers";
 import { Ride, getRideById, updateRideStatus } from "@/services/rideService";
 import { Profile } from "@/services/profileService";
@@ -224,14 +224,18 @@ export default function RideDetails() {
           <div className="h-[300px] rounded-lg overflow-hidden">
             <RideMap
               className="h-full"
-              pickupLocation={{
+              pickupLocation={ride?.from_coordinates ? {
                 name: ride.from_location,
-                coordinates: ride.from_coordinates
-              }}
-              dropLocation={{
+                coordinates: typeof ride.from_coordinates === 'string' 
+                  ? JSON.parse(ride.from_coordinates) 
+                  : ride.from_coordinates
+              } : undefined}
+              dropLocation={ride?.to_coordinates ? {
                 name: ride.to_location,
-                coordinates: ride.to_coordinates
-              }}
+                coordinates: typeof ride.to_coordinates === 'string'
+                  ? JSON.parse(ride.to_coordinates)
+                  : ride.to_coordinates
+              } : undefined}
             />
           </div>
 

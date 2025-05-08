@@ -5,7 +5,7 @@ import { Card3D } from "@/components/ui/card-3d";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
-import RideMap from "@/components/map/RideMap";
+import { RideMap } from "@/components/map/RideMap";
 import {
   Popover,
   PopoverContent,
