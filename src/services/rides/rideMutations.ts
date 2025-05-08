@@ -1,19 +1,14 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { createNotification } from '../notificationService';
-import { RidePassenger } from './types';
+import { RidePassenger, Coordinates } from './types';
 
 export async function createRide(rideData: {
   from_location: string;
   to_location: string;
-  from_coordinates: {
-    lat: number;
-    lng: number;
-  };
-  to_coordinates: {
-    lat: number;
-    lng: number;
-  };
+  from_coordinates: Coordinates | string;
+  to_coordinates: Coordinates | string;
   departure_date: string;
   departure_time: string;
   available_seats: number;
@@ -28,10 +23,21 @@ export async function createRide(rideData: {
       return null;
     }
 
+    // Ensure coordinates are in string format for database storage
+    const processedData = {
+      ...rideData,
+      from_coordinates: typeof rideData.from_coordinates === 'string' 
+        ? rideData.from_coordinates 
+        : JSON.stringify(rideData.from_coordinates),
+      to_coordinates: typeof rideData.to_coordinates === 'string'
+        ? rideData.to_coordinates
+        : JSON.stringify(rideData.to_coordinates)
+    };
+
     const { data, error } = await supabase
       .from('rides')
       .insert({
-        ...rideData,
+        ...processedData,
         driver_id: sessionData.session.user.id,
         status: 'active'
       })

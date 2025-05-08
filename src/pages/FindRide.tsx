@@ -39,6 +39,8 @@ interface Location {
   };
 }
 
+type RideWithDriver = Ride & { driver: Profile | null };
+
 export default function FindRide() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -48,10 +50,10 @@ export default function FindRide() {
   const [toValue, setToValue] = useState("");
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isSearching, setIsSearching] = useState(false);
-  const [rides, setRides] = useState<Ride[]>([]);
-  const [filteredRides, setFilteredRides] = useState<Ride[]>([]);
+  const [rides, setRides] = useState<RideWithDriver[]>([]);
+  const [filteredRides, setFilteredRides] = useState<RideWithDriver[]>([]);
   const [isFormExpanded, setIsFormExpanded] = useState(true);
-  const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
+  const [selectedRide, setSelectedRide] = useState<RideWithDriver | null>(null);
   const [showExpandedCard, setShowExpandedCard] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
@@ -107,13 +109,13 @@ export default function FindRide() {
     setTimeout(() => setIsSearching(false), 500);
   };
 
-  const handleRideSelect = (ride: Ride) => {
+  const handleRideSelect = (ride: RideWithDriver) => {
     if (!ride) return;
     setSelectedRide(ride);
     setShowExpandedCard(true);
   };
 
-  const handleBookRide = async (ride: Ride) => {
+  const handleBookRide = async (ride: RideWithDriver) => {
     if (!ride) return;
 
     if (!user) {
