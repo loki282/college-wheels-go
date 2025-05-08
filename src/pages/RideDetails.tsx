@@ -9,7 +9,7 @@ import { RideMap } from "@/components/map/RideMap";
 import { Navigation2 } from "lucide-react";
 import { getRideById } from "@/services/rideService";
 import { RideHeader } from "@/components/rides/RideHeader";
-import { Ride } from "@/services/rides/types";
+import { Ride, normalizeCoordinates } from "@/services/rides/types";
 import { Profile } from "@/services/profileService";
 import {
   Card,
@@ -23,8 +23,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface RideDetailsProps {}
 
 const RideDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,31 +45,13 @@ const RideDetails = () => {
 
   // Get coordinates for the map
   const getFromCoordinates = () => {
-    if (!ride) return null;
-    
-    try {
-      if (typeof ride.from_coordinates === 'string') {
-        return JSON.parse(ride.from_coordinates as string);
-      }
-      return ride.from_coordinates;
-    } catch (e) {
-      console.error("Failed to parse from_coordinates:", e);
-      return null;
-    }
+    if (!ride) return { lat: 0, lng: 0 };
+    return normalizeCoordinates(ride.from_coordinates);
   };
   
   const getToCoordinates = () => {
-    if (!ride) return null;
-    
-    try {
-      if (typeof ride.to_coordinates === 'string') {
-        return JSON.parse(ride.to_coordinates as string);
-      }
-      return ride.to_coordinates;
-    } catch (e) {
-      console.error("Failed to parse to_coordinates:", e);
-      return null;
-    }
+    if (!ride) return { lat: 0, lng: 0 };
+    return normalizeCoordinates(ride.to_coordinates);
   };
 
   const formatDate = (dateString: string): string => {
@@ -184,11 +164,11 @@ const RideDetails = () => {
                 showUserLocation={false}
                 pickupLocation={{
                   name: ride.from_location,
-                  coordinates: getFromCoordinates() || { lat: 0, lng: 0 }
+                  coordinates: getFromCoordinates()
                 }}
                 dropLocation={{
                   name: ride.to_location,
-                  coordinates: getToCoordinates() || { lat: 0, lng: 0 }
+                  coordinates: getToCoordinates()
                 }}
               />
             </div>

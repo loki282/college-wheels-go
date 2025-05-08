@@ -24,7 +24,7 @@ import {
   ChevronDown as ChevronDownIcon,
 } from "lucide-react";
 import { ExpandedRideCard } from "@/components/rides/ExpandedRideCard";
-import { Ride } from "@/services/rides/types";
+import { Ride, normalizeCoordinates } from "@/services/rides/types";
 import { Profile } from "@/services/profileService";
 import { getAvailableRides } from "@/services/rides/rideQueries";
 import { bookRide } from "@/services/rides/bookingService";
@@ -49,10 +49,10 @@ export default function FindRide() {
   const [toValue, setToValue] = useState("");
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isSearching, setIsSearching] = useState(false);
-  const [rides, setRides] = useState<(Ride & { driver: Profile | null })[]>([]);
-  const [filteredRides, setFilteredRides] = useState<(Ride & { driver: Profile | null })[]>([]);
+  const [rides, setRides] = useState<Ride[]>([]);
+  const [filteredRides, setFilteredRides] = useState<Ride[]>([]);
   const [isFormExpanded, setIsFormExpanded] = useState(true);
-  const [selectedRide, setSelectedRide] = useState<(Ride & { driver: Profile | null }) | null>(null);
+  const [selectedRide, setSelectedRide] = useState<Ride | null>(null);
   const [showExpandedCard, setShowExpandedCard] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
@@ -108,13 +108,13 @@ export default function FindRide() {
     setTimeout(() => setIsSearching(false), 500);
   };
 
-  const handleRideSelect = (ride: Ride & { driver: Profile | null }) => {
+  const handleRideSelect = (ride: Ride) => {
     if (!ride) return;
     setSelectedRide(ride);
     setShowExpandedCard(true);
   };
 
-  const handleBookRide = async (ride: Ride & { driver: Profile | null }) => {
+  const handleBookRide = async (ride: Ride) => {
     if (!ride) return;
 
     if (!user) {
@@ -162,7 +162,7 @@ export default function FindRide() {
             <RideMap
               className="h-full"
               showUserLocation={true}
-              initialCenter={from?.coordinates ? { lat: from.coordinates.lat, lng: from.coordinates.lng } : undefined}
+              initialCenter={from?.coordinates ? from.coordinates : undefined}
             />
             <div
               className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-background/80 backdrop-blur-sm rounded-full p-2 cursor-pointer hover:bg-background/90 transition-all"

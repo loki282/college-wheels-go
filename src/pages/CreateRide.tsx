@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -179,8 +180,8 @@ export default function CreateRide() {
         const ride = await createRide({
           from_location: formData.from_location,
           to_location: formData.to_location,
-          from_coordinates: formData.from_coordinates,
-          to_coordinates: formData.to_coordinates,
+          from_coordinates: JSON.stringify(formData.from_coordinates),
+          to_coordinates: JSON.stringify(formData.to_coordinates),
           departure_date: formData.departure_date,
           departure_time: formData.departure_time,
           available_seats: formData.available_seats,
@@ -197,8 +198,8 @@ export default function CreateRide() {
         const ride = await createRide({
           from_location: formData.from_location,
           to_location: formData.to_location,
-          from_coordinates: formData.from_coordinates,
-          to_coordinates: formData.to_coordinates,
+          from_coordinates: JSON.stringify(formData.from_coordinates),
+          to_coordinates: JSON.stringify(formData.to_coordinates),
           departure_date: formData.departure_date,
           departure_time: formData.departure_time,
           available_seats: formData.available_seats,
