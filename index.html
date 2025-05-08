@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OrbitRide - Student Ride Sharing</title>
+  <meta name="description" content="Connect college students for ride sharing" />
+  <meta name="author" content="OrbitRide" />
+
+  <meta property="og:title" content="OrbitRide - Student Ride Sharing" />
+  <meta property="og:description" content="Connect college students for ride sharing" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@orbitride" />
+  <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&family=Poppins:wght@500;600;700&family=Roboto+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+
+  <!-- PWA meta tags -->
+  <meta name="theme-color" content="#7B61FF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="/manifest.json" />
+
+  <script>
+    // Initialize Google Maps API
+    function initMap() {
+      window.googleMapsLoaded = true;
+      if (window.onGoogleMapsLoaded) {
+        window.onGoogleMapsLoaded();
+      }
+    }
+
+    // Load Google Maps API
+    function loadGoogleMaps() {
+      const script = document.createElement('script');
+      script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyCGCE8pkGOja2CMAN8eRHPMyAuU-D-FBhA&libraries=places,geometry&callback=initMap';
+      script.async = true;
+      script.defer = true;
+      script.onerror = function () {
+        console.error('Failed to load Google Maps API');
+        window.googleMapsLoaded = false;
+      };
+      document.head.appendChild(script);
+    }
+
+    // Load Google Maps when the page is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadGoogleMaps);
+    } else {
+      loadGoogleMaps();
+    }
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
+  <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>
