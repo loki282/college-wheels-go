@@ -1,343 +1,319 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { GlassContainer } from "@/components/ui/glass-container";
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronLeft } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
-import { format } from "date-fns";
-import {
-  Calendar as CalendarIcon,
-  Clock as ClockIcon,
-  MapPin as MapPinIcon,
-  User as UserIcon,
-  Star as StarIcon,
-} from "lucide-react";
 import { RideMap } from "@/components/map/RideMap";
-import { RidePassengers } from "@/components/rides/RidePassengers";
-import { Ride, getRideById, updateRideStatus } from "@/services/rideService";
+import { Navigation2 } from "lucide-react";
+import { getRideById } from "@/services/rideService";
+import { RideHeader } from "@/components/ride/RideHeader";
+import { Ride } from "@/services/rides/types";
 import { Profile } from "@/services/profileService";
-import { toast } from "sonner";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { RatingForm } from "@/components/ratings/RatingForm";
-import { UserRatings } from "@/components/ratings/UserRatings";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
-export default function RideDetails() {
+interface RideDetailsProps {}
+
+const RideDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [ride, setRide] = useState<Ride & { driver: Profile | null, passengers: any[] } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [showRatingDialog, setShowRatingDialog] = useState(false);
-  const [userToRate, setUserToRate] = useState<{ id: string, name: string } | null>(null);
 
-  useEffect(() => {
-    const loadRide = async () => {
-      if (!id) return;
-
-      setIsLoading(true);
-      const rideData = await getRideById(id);
-
-      if (rideData) {
-        setRide(rideData as (Ride & { driver: Profile | null, passengers: any[] }));
-      } else {
-        toast.error("Ride not found");
-        navigate("/rides");
+  const {
+    data: ride,
+    isLoading,
+    error,
+  } = useQuery(
+    ["ride", id],
+    () => {
+      if (!id) {
+        throw new Error("Ride ID is required");
       }
+      return getRideById(id);
+    },
+    {
+      retry: false,
+    }
+  );
 
-      setIsLoading(false);
-    };
-
-    loadRide();
-  }, [id, navigate]);
-
-  const handleStatusUpdate = async (status: 'active' | 'completed' | 'cancelled') => {
-    if (!ride || !id) return;
-
-    setIsUpdating(true);
+  // Get coordinates for the map
+  const getFromCoordinates = () => {
+    if (!ride) return null;
+    
     try {
-      const success = await updateRideStatus(id, status);
-      if (success) {
-        setRide({
-          ...ride,
-          status
-        });
-
-        if (status === 'completed') {
-          toast.success('Ride completed! You can now rate passengers.', {
-            action: {
-              label: 'Rate Now',
-              onClick: () => promptRatePassenger(),
-            },
-          });
-        }
+      if (typeof ride.from_coordinates === 'string') {
+        return JSON.parse(ride.from_coordinates);
       }
-    } finally {
-      setIsUpdating(false);
+      return ride.from_coordinates;
+    } catch (e) {
+      console.error("Failed to parse from_coordinates:", e);
+      return null;
     }
   };
-
-  const promptRatePassenger = () => {
-    const confirmedPassengers = ride?.passengers.filter(p => p.status === 'confirmed');
-    if (confirmedPassengers && confirmedPassengers.length > 0) {
-      const passenger = confirmedPassengers[0];
-      if (passenger.passenger) {
-        setUserToRate({
-          id: passenger.passenger_id,
-          name: passenger.passenger.full_name || 'Passenger'
-        });
-        setShowRatingDialog(true);
+  
+  const getToCoordinates = () => {
+    if (!ride) return null;
+    
+    try {
+      if (typeof ride.to_coordinates === 'string') {
+        return JSON.parse(ride.to_coordinates);
       }
+      return ride.to_coordinates;
+    } catch (e) {
+      console.error("Failed to parse to_coordinates:", e);
+      return null;
     }
   };
 
-  const promptRateDriver = () => {
-    if (ride?.driver) {
-      setUserToRate({
-        id: ride.driver_id,
-        name: ride.driver.full_name || 'Driver'
-      });
-      setShowRatingDialog(true);
-    }
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    return date.toLocaleDateString(undefined, options);
   };
 
-  if (isLoading) {
-    return (
-      <div className="pt-6 pb-20 px-4 flex justify-center items-center min-h-[calc(100vh-120px)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-electricblue"></div>
-      </div>
-    );
-  }
+  const formatTime = (timeString: string): string => {
+    const [hours, minutes] = timeString.split(":");
+    const date = new Date();
+    date.setHours(parseInt(hours, 10));
+    date.setMinutes(parseInt(minutes, 10));
+    return date.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
-  if (!ride) {
-    return (
-      <div className="pt-6 pb-20 px-4 flex flex-col items-center justify-center min-h-[calc(100vh-120px)]">
-        <h1 className="text-3xl font-bold">Ride not found</h1>
-        <p className="text-muted-foreground mt-2">The ride you're looking for doesn't exist or has been removed.</p>
-        <Button className="mt-6" onClick={() => navigate("/rides")}>Back to My Rides</Button>
-      </div>
-    );
-  }
-
-  const isDriver = user?.id === ride.driver_id;
-  const isCompleted = ride.status === 'completed';
-  const isCancelled = ride.status === 'cancelled';
-  const isActive = ride.status === 'active';
+  // Navigate to live tracking
+  const goToLiveTracking = () => {
+    if (ride?.id) {
+      navigate(`/live-tracking/${ride.id}`);
+    }
+  };
 
   return (
-    <div className="pt-6 pb-20 px-4 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Ride Details</h1>
-
-        {isDriver && isActive && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-              onClick={() => handleStatusUpdate('cancelled')}
-              disabled={isUpdating}
-            >
-              Cancel Ride
-            </Button>
-            <Button
-              className="bg-electricblue hover:bg-electricblue/90"
-              onClick={() => handleStatusUpdate('completed')}
-              disabled={isUpdating}
-            >
-              Complete Ride
-            </Button>
-          </div>
-        )}
-
-        {!isDriver && isCompleted && (
-          <Button
-            className="bg-yellow-500 hover:bg-yellow-600 text-white"
-            onClick={promptRateDriver}
-          >
-            <StarIcon className="mr-2 h-4 w-4" />
-            Rate Driver
-          </Button>
-        )}
-
-        {isDriver && isCompleted && ride.passengers.some(p => p.status === 'confirmed') && (
-          <Button
-            className="bg-yellow-500 hover:bg-yellow-600 text-white"
-            onClick={promptRatePassenger}
-          >
-            <StarIcon className="mr-2 h-4 w-4" />
-            Rate Passengers
-          </Button>
-        )}
+    <div className="container mx-auto px-4 py-6">
+      <div className="mb-6 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="flex items-center text-muted-foreground"
+        >
+          <ChevronLeft className="mr-1 h-4 w-4" />
+          Back
+        </Button>
+        
+        <h1 className="text-2xl font-bold tracking-tight">Ride Details</h1>
+        
+        <div className="w-12" /> {/* Spacer for balance */}
       </div>
 
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <GlassContainer className="p-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">
-                {ride.from_location} → {ride.to_location}
-              </h2>
-              <div
-                className={`px-3 py-1 rounded-full text-sm font-medium ${ride.status === 'active'
-                  ? 'bg-green-100 text-green-800'
-                  : ride.status === 'completed'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-red-100 text-red-800'
-                  }`}
-              >
-                {ride.status.charAt(0).toUpperCase() + ride.status.slice(1)}
+      {isLoading ? (
+        <Card className="w-full space-y-4">
+          <CardHeader>
+            <CardTitle>
+              <Skeleton className="h-6 w-64" />
+            </CardTitle>
+            <CardDescription>
+              <Skeleton className="h-4 w-40" />
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="flex items-center">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="ml-4 space-y-2">
+                <Skeleton className="h-4 w-52" />
+                <Skeleton className="h-4 w-40" />
               </div>
             </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-48" />
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Skeleton className="h-10 w-24" />
+          </CardFooter>
+        </Card>
+      ) : error ? (
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>Error</CardTitle>
+            <CardDescription>Failed to load ride details.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>
+              There was an error fetching the ride details. Please try again
+              later.
+            </p>
+          </CardContent>
+        </Card>
+      ) : ride ? (
+        <>
+          <div className="rounded-lg border bg-card shadow-sm">
+            {/* Ride Header */}
+            <RideHeader
+              fromLocation={ride.from_location}
+              toLocation={ride.to_location}
+              date={ride.departure_date}
+              time={ride.departure_time}
+              status={ride.status}
+            />
 
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center">
-                <CalendarIcon className="h-5 w-5 text-muted-foreground mr-2" />
-                <span>
-                  {format(new Date(ride.departure_date), "MMMM d, yyyy")}
-                </span>
-              </div>
-              <div className="flex items-center">
-                <ClockIcon className="h-5 w-5 text-muted-foreground mr-2" />
-                <span>{ride.departure_time.substring(0, 5)}</span>
-              </div>
-              <div className="flex items-center">
-                <div className="flex items-center justify-center h-5 w-5 text-muted-foreground mr-2">
-                  <span className="text-lg font-semibold">₹</span>
-                </div>
-                <span>₹{parseFloat(ride.price.toString()).toFixed(2)} per seat</span>
-              </div>
-              <div className="flex items-center">
-                <div className="flex items-center justify-center h-5 w-5 text-muted-foreground mr-2">
-                  <span className="text-lg font-semibold">🪑</span>
-                </div>
-                <span>{ride.available_seats} {ride.available_seats === 1 ? 'seat' : 'seats'} available</span>
-              </div>
+            {/* Map Preview */}
+            <div className="h-48 w-full overflow-hidden sm:h-64">
+              <RideMap
+                height="100%"
+                showUserLocation={false}
+                pickupLocation={{
+                  name: ride.from_location,
+                  coordinates: getFromCoordinates() || { lat: 0, lng: 0 }
+                }}
+                dropLocation={{
+                  name: ride.to_location,
+                  coordinates: getToCoordinates() || { lat: 0, lng: 0 }
+                }}
+              />
             </div>
 
-            {ride.notes && (
-              <div className="mt-4">
-                <h3 className="font-medium">Notes:</h3>
-                <p className="text-muted-foreground mt-1">{ride.notes}</p>
+            {/* Live Tracking Button */}
+            {ride.status === 'active' && (
+              <div className="flex justify-center p-4 bg-gradient-to-r from-indigo-900/10 via-background to-indigo-900/10">
+                <Button 
+                  onClick={goToLiveTracking}
+                  className="w-full max-w-xs bg-primary/90 hover:bg-primary shadow-glow"
+                >
+                  <Navigation2 className="mr-2 h-5 w-5 animate-pulse" />
+                  Live Tracking
+                </Button>
               </div>
             )}
-          </GlassContainer>
 
-          <div className="h-[300px] rounded-lg overflow-hidden">
-            <RideMap
-              className="h-full"
-              pickupLocation={ride?.from_coordinates ? {
-                name: ride.from_location,
-                coordinates: typeof ride.from_coordinates === 'string' 
-                  ? JSON.parse(ride.from_coordinates) 
-                  : ride.from_coordinates
-              } : undefined}
-              dropLocation={ride?.to_coordinates ? {
-                name: ride.to_location,
-                coordinates: typeof ride.to_coordinates === 'string'
-                  ? JSON.parse(ride.to_coordinates)
-                  : ride.to_coordinates
-              } : undefined}
-            />
-          </div>
-
-          {isDriver && (
-            <div>
-              <h2 className="text-xl font-semibold mb-3">Passengers</h2>
-              <RidePassengers rideId={id || ''} />
-            </div>
-          )}
-
-          {ride.driver && (
-            <div>
-              <h2 className="text-xl font-semibold mb-3">Driver Ratings</h2>
-              <UserRatings userId={ride.driver_id} />
-            </div>
-          )}
-
-        </div>
-
-        <div>
-          <GlassContainer className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Driver</h2>
-            <div className="flex items-center">
-              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mr-4">
-                {ride.driver?.full_name ? (
-                  <span className="text-2xl font-semibold">{ride.driver.full_name.charAt(0)}</span>
-                ) : (
-                  <UserIcon className="h-8 w-8" />
-                )}
-              </div>
-              <div>
-                <div className="font-medium text-lg">
-                  {ride.driver?.full_name || "Unknown Driver"}
+            {/* Driver Info */}
+            <div className="border-t p-4">
+              <h3 className="mb-4 text-lg font-semibold">Driver Information</h3>
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  {ride.driver?.full_name ? (
+                    <AvatarImage
+                      src={`https://api.dicebear.com/7.x/lorelei/svg?seed=${ride.driver.full_name}`}
+                      alt={ride.driver.full_name}
+                    />
+                  ) : (
+                    <AvatarFallback>
+                      {ride.driver?.full_name
+                        ? ride.driver.full_name.charAt(0)
+                        : "N/A"}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+                <div>
+                  <h4 className="text-sm font-medium leading-none">
+                    {ride.driver?.full_name || "N/A"}
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    {ride.driver?.email || "No Email"}
+                  </p>
                 </div>
-                {ride.driver?.rating !== null && ride.driver?.rating !== undefined && (
-                  <div className="flex items-center gap-1">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <StarIcon
-                          key={i}
-                          className={`h-4 w-4 ${i < Math.floor(ride.driver?.rating || 0)
-                            ? "fill-yellow-500 text-yellow-500"
-                            : "text-muted"
-                            }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      ({ride.driver?.total_rides || 0} rides)
-                    </span>
+              </div>
+            </div>
+
+            {/* Ride Details */}
+            <div className="border-t p-4">
+              <h3 className="mb-4 text-lg font-semibold">Ride Details</h3>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold">From:</span>
+                  <span>{ride.from_location}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold">To:</span>
+                  <span>{ride.to_location}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold">Date:</span>
+                  <span>{formatDate(ride.departure_date)}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold">Time:</span>
+                  <span>{formatTime(ride.departure_time)}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold">Price:</span>
+                  <span>${ride.price}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="font-semibold">Available Seats:</span>
+                  <span>{ride.available_seats}</span>
+                </div>
+                {ride.notes && (
+                  <div className="flex items-center space-x-2">
+                    <span className="font-semibold">Notes:</span>
+                    <span>{ride.notes}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {ride.driver?.university && (
-              <div className="mt-4">
-                <span className="text-sm text-muted-foreground">University</span>
-                <div>{ride.driver.university}</div>
+            {/* Passengers */}
+            {ride.passengers && ride.passengers.length > 0 && (
+              <div className="border-t p-4">
+                <h3 className="mb-4 text-lg font-semibold">Passengers</h3>
+                <ScrollArea className="h-[150px] w-full rounded-md border">
+                  <div className="space-y-4 p-4">
+                    {ride.passengers.map((passenger) => (
+                      <div key={passenger.id} className="flex items-center space-x-4">
+                        <Avatar>
+                          {passenger.passenger?.full_name ? (
+                            <AvatarImage
+                              src={`https://api.dicebear.com/7.x/lorelei/svg?seed=${passenger.passenger.full_name}`}
+                              alt={passenger.passenger.full_name}
+                            />
+                          ) : (
+                            <AvatarFallback>
+                              {passenger.passenger?.full_name
+                                ? passenger.passenger.full_name.charAt(0)
+                                : "N/A"}
+                            </AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div>
+                          <h4 className="text-sm font-medium leading-none">
+                            {passenger.passenger?.full_name || "N/A"}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            {passenger.passenger?.email || "No Email"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               </div>
             )}
-
-            <Button
-              className="mt-6 w-full bg-electricblue hover:bg-electricblue/90"
-              onClick={() => {
-                if (ride.driver) {
-                  navigate(`/messages?chat=${ride.driver_id}`);
-                }
-              }}
-              disabled={!ride.driver}
-            >
-              Message Driver
-            </Button>
-          </GlassContainer>
-
-          <div className="mt-6">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate("/rides")}
-            >
-              Back to My Rides
-            </Button>
           </div>
-        </div>
-      </div>
-
-      <Dialog open={showRatingDialog} onOpenChange={setShowRatingDialog}>
-        <DialogContent className="sm:max-w-md">
-          {userToRate && (
-            <RatingForm
-              rideId={id || ''}
-              userId={userToRate.id}
-              userName={userToRate.name}
-              onComplete={() => {
-                setShowRatingDialog(false);
-                toast.success('Rating submitted successfully');
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+        </>
+      ) : null}
     </div>
   );
-}
+};
+
+export default RideDetails;

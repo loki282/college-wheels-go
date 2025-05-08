@@ -266,5 +266,5 @@ export const RideMap: React.FC<RideMapProps> = ({
   );
 };
 
-// Also export as default to support existing imports
+// Export as default to support existing imports
 export default RideMap;

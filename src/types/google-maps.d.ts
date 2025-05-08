@@ -50,6 +50,10 @@ declare global {
           encoding: {
             decodePath: (path: string) => any[];
           };
+          spherical: {
+            computeDistanceBetween: (from: any, to: any) => number;
+            computeHeading: (from: any, to: any) => number;
+          };
         };
         Polyline: new (options: any) => any;
         MapMouseEvent: any;

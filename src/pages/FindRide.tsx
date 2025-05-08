@@ -54,6 +54,7 @@ export default function FindRide() {
   const [selectedRide, setSelectedRide] = useState<(Ride & { driver: Profile | null }) | null>(null);
   const [showExpandedCard, setShowExpandedCard] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
 
   useEffect(() => {
     const loadRides = async () => {
@@ -106,7 +107,7 @@ export default function FindRide() {
     setTimeout(() => setIsSearching(false), 500);
   };
 
-  const handleRideClick = (ride: Ride & { driver: Profile | null }) => {
+  const handleRideSelect = async (ride: import('@/services/rides/types').Ride & { driver: import('@/services/profileService').Profile }) => {
     if (!ride) return;
     setSelectedRide(ride);
     setShowExpandedCard(true);
@@ -274,7 +275,7 @@ export default function FindRide() {
                   <Card3D key={ride?.id}>
                     <div
                       className="cursor-pointer"
-                      onClick={() => handleRideClick(ride)}
+                      onClick={() => handleRideSelect(ride)}
                     >
                       <GlassContainer className="p-4">
                         <div className="flex items-start justify-between">
