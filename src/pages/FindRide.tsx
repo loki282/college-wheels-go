@@ -24,7 +24,7 @@ import {
   ChevronDown as ChevronDownIcon,
 } from "lucide-react";
 import { ExpandedRideCard } from "@/components/rides/ExpandedRideCard";
-import { Ride, normalizeCoordinates } from "@/services/rides/types";
+import { Ride } from "@/services/rides/types";
 import { Profile } from "@/services/profileService";
 import { getAvailableRides } from "@/services/rides/rideQueries";
 import { bookRide } from "@/services/rides/bookingService";
