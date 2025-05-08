@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,14 +22,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoutePreview } from "@/components/rides/RoutePreview";
 import { FareEstimate } from "@/components/rides/FareEstimate";
-import type { RideSchedule, QuickRoute, Ride, RoutePreview as RoutePreviewType } from '@/services/rides/types';
+import type { RideSchedule, QuickRoute, Ride, RoutePreview as RoutePreviewType, Coordinates } from '@/services/rides/types';
 
 interface Location {
   name: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
+  coordinates: Coordinates;
 }
 
 interface FormData {
@@ -44,8 +40,8 @@ interface FormData {
   is_quick_ride: boolean;
   is_shared: boolean;
   max_passengers: number;
-  from_coordinates: { lat: number; lng: number };
-  to_coordinates: { lat: number; lng: number };
+  from_coordinates: Coordinates;
+  to_coordinates: Coordinates;
 }
 
 export default function CreateRide() {
@@ -165,8 +161,8 @@ export default function CreateRide() {
         const quickRide = await createQuickRide({
           from_location: formData.from_location,
           to_location: formData.to_location,
-          from_coordinates: JSON.stringify(fromLocation.coordinates),
-          to_coordinates: JSON.stringify(toLocation.coordinates),
+          from_coordinates: fromLocation.coordinates,
+          to_coordinates: toLocation.coordinates,
           distance: routePreview.distance,
           estimated_duration: routePreview.duration,
           is_active: true
@@ -180,8 +176,8 @@ export default function CreateRide() {
         const ride = await createRide({
           from_location: formData.from_location,
           to_location: formData.to_location,
-          from_coordinates: JSON.stringify(formData.from_coordinates),
-          to_coordinates: JSON.stringify(formData.to_coordinates),
+          from_coordinates: formData.from_coordinates,
+          to_coordinates: formData.to_coordinates,
           departure_date: formData.departure_date,
           departure_time: formData.departure_time,
           available_seats: formData.available_seats,
@@ -198,8 +194,8 @@ export default function CreateRide() {
         const ride = await createRide({
           from_location: formData.from_location,
           to_location: formData.to_location,
-          from_coordinates: JSON.stringify(formData.from_coordinates),
-          to_coordinates: JSON.stringify(formData.to_coordinates),
+          from_coordinates: formData.from_coordinates,
+          to_coordinates: formData.to_coordinates,
           departure_date: formData.departure_date,
           departure_time: formData.departure_time,
           available_seats: formData.available_seats,

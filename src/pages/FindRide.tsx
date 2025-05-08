@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { GlassContainer } from "@/components/ui/glass-container";
@@ -24,7 +23,7 @@ import {
   ChevronDown as ChevronDownIcon,
 } from "lucide-react";
 import { ExpandedRideCard } from "@/components/rides/ExpandedRideCard";
-import { Ride } from "@/services/rides/types";
+import { Ride, normalizeCoordinates } from "@/services/rides/types";
 import { Profile } from "@/services/profileService";
 import { getAvailableRides } from "@/services/rides/rideQueries";
 import { bookRide } from "@/services/rides/bookingService";
