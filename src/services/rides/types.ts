@@ -39,7 +39,6 @@ export interface Ride {
   };
   ride_status?: 'awaiting' | 'arriving' | 'in_progress' | 'completed';
   eta_minutes?: number;
-  passengers?: RidePassenger[];
 }
 
 export interface RideSchedule {
@@ -125,39 +124,3 @@ export type Coordinates = {
   lat: number;
   lng: number;
 };
-
-// Helper function to normalize coordinates
-export function normalizeCoordinates(coords: any): Coordinates {
-  if (!coords) return { lat: 0, lng: 0 };
-  
-  if (typeof coords === 'string') {
-    try {
-      // Try to parse if it's a JSON string
-      const parsed = JSON.parse(coords);
-      if (parsed.lat !== undefined && parsed.lng !== undefined) {
-        return { lat: Number(parsed.lat), lng: Number(parsed.lng) };
-      }
-      
-      // Handle comma-separated string format "lat,lng"
-      const [lat, lng] = coords.split(',').map(Number);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        return { lat, lng };
-      }
-    } catch (e) {
-      // If parsing fails, try to handle as a comma-separated string
-      const [lat, lng] = coords.split(',').map(Number);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        return { lat, lng };
-      }
-    }
-  } else if (coords.lat !== undefined && coords.lng !== undefined) {
-    // Already in the correct format
-    return { lat: Number(coords.lat), lng: Number(coords.lng) };
-  } else if (Array.isArray(coords) && coords.length >= 2) {
-    // Handle array format [lat, lng]
-    return { lat: Number(coords[0]), lng: Number(coords[1]) };
-  }
-  
-  // Default fallback
-  return { lat: 0, lng: 0 };
-}

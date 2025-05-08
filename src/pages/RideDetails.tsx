@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -8,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { RideMap } from "@/components/map/RideMap";
 import { Navigation2 } from "lucide-react";
 import { getRideById } from "@/services/rideService";
-import { RideHeader } from "@/components/rides/RideHeader";
-import { Ride, normalizeCoordinates } from "@/services/rides/types";
+import { RideHeader } from "@/components/ride/RideHeader";
+import { Ride } from "@/services/rides/types";
 import { Profile } from "@/services/profileService";
 import {
   Card,
@@ -24,6 +23,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface RideDetailsProps {}
+
 const RideDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -32,26 +33,46 @@ const RideDetails = () => {
     data: ride,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["ride", id],
-    queryFn: () => {
+  } = useQuery(
+    ["ride", id],
+    () => {
       if (!id) {
         throw new Error("Ride ID is required");
       }
       return getRideById(id);
     },
-    retry: false,
-  });
+    {
+      retry: false,
+    }
+  );
 
   // Get coordinates for the map
   const getFromCoordinates = () => {
-    if (!ride) return { lat: 0, lng: 0 };
-    return normalizeCoordinates(ride.from_coordinates);
+    if (!ride) return null;
+    
+    try {
+      if (typeof ride.from_coordinates === 'string') {
+        return JSON.parse(ride.from_coordinates);
+      }
+      return ride.from_coordinates;
+    } catch (e) {
+      console.error("Failed to parse from_coordinates:", e);
+      return null;
+    }
   };
   
   const getToCoordinates = () => {
-    if (!ride) return { lat: 0, lng: 0 };
-    return normalizeCoordinates(ride.to_coordinates);
+    if (!ride) return null;
+    
+    try {
+      if (typeof ride.to_coordinates === 'string') {
+        return JSON.parse(ride.to_coordinates);
+      }
+      return ride.to_coordinates;
+    } catch (e) {
+      console.error("Failed to parse to_coordinates:", e);
+      return null;
+    }
   };
 
   const formatDate = (dateString: string): string => {
@@ -164,11 +185,11 @@ const RideDetails = () => {
                 showUserLocation={false}
                 pickupLocation={{
                   name: ride.from_location,
-                  coordinates: getFromCoordinates()
+                  coordinates: getFromCoordinates() || { lat: 0, lng: 0 }
                 }}
                 dropLocation={{
                   name: ride.to_location,
-                  coordinates: getToCoordinates()
+                  coordinates: getToCoordinates() || { lat: 0, lng: 0 }
                 }}
               />
             </div>

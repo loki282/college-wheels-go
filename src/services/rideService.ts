@@ -9,8 +9,6 @@ export interface Ride {
   driver_id: string;
   from_location: string;
   to_location: string;
-  from_coordinates?: string | { lat: number; lng: number; };
-  to_coordinates?: string | { lat: number; lng: number; };
   departure_date: string;
   departure_time: string;
   available_seats: number;

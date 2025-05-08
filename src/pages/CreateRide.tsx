@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,11 +22,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoutePreview } from "@/components/rides/RoutePreview";
 import { FareEstimate } from "@/components/rides/FareEstimate";
-import type { RideSchedule, QuickRoute, Ride, RoutePreview as RoutePreviewType, Coordinates } from '@/services/rides/types';
+import type { RideSchedule, QuickRoute, Ride, RoutePreview as RoutePreviewType } from '@/services/rides/types';
 
 interface Location {
   name: string;
-  coordinates: Coordinates;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
 }
 
 interface FormData {
@@ -41,8 +43,8 @@ interface FormData {
   is_quick_ride: boolean;
   is_shared: boolean;
   max_passengers: number;
-  from_coordinates: Coordinates;
-  to_coordinates: Coordinates;
+  from_coordinates: { lat: number; lng: number };
+  to_coordinates: { lat: number; lng: number };
 }
 
 export default function CreateRide() {
@@ -162,8 +164,8 @@ export default function CreateRide() {
         const quickRide = await createQuickRide({
           from_location: formData.from_location,
           to_location: formData.to_location,
-          from_coordinates: fromLocation.coordinates,
-          to_coordinates: toLocation.coordinates,
+          from_coordinates: `${fromLocation.coordinates.lat},${fromLocation.coordinates.lng}`,
+          to_coordinates: `${toLocation.coordinates.lat},${toLocation.coordinates.lng}`,
           distance: routePreview.distance,
           estimated_duration: routePreview.duration,
           is_active: true
