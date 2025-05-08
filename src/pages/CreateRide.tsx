@@ -165,8 +165,8 @@ export default function CreateRide() {
         const quickRide = await createQuickRide({
           from_location: formData.from_location,
           to_location: formData.to_location,
-          from_coordinates: `${fromLocation.coordinates.lat},${fromLocation.coordinates.lng}`,
-          to_coordinates: `${toLocation.coordinates.lat},${toLocation.coordinates.lng}`,
+          from_coordinates: JSON.stringify(fromLocation.coordinates),
+          to_coordinates: JSON.stringify(toLocation.coordinates),
           distance: routePreview.distance,
           estimated_duration: routePreview.duration,
           is_active: true
