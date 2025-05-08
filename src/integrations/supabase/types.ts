@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       messages: {
@@ -14,7 +14,7 @@ export interface Database {
           content: string
           created_at: string
           id: string
-          read: boolean
+          read: boolean | null
           receiver_id: string
           sender_id: string
         }
@@ -22,7 +22,7 @@ export interface Database {
           content: string
           created_at?: string
           id?: string
-          read?: boolean
+          read?: boolean | null
           receiver_id: string
           sender_id: string
         }
@@ -30,7 +30,7 @@ export interface Database {
           content?: string
           created_at?: string
           id?: string
-          read?: boolean
+          read?: boolean | null
           receiver_id?: string
           sender_id?: string
         }
@@ -38,15 +38,17 @@ export interface Database {
           {
             foreignKeyName: "messages_receiver_id_fkey"
             columns: ["receiver_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       notifications: {
@@ -55,8 +57,8 @@ export interface Database {
           created_at: string
           id: string
           notification_type: string
-          read: boolean
-          reference_id: string
+          read: boolean | null
+          reference_id: string | null
           title: string
           user_id: string
         }
@@ -65,8 +67,8 @@ export interface Database {
           created_at?: string
           id?: string
           notification_type: string
-          read?: boolean
-          reference_id?: string
+          read?: boolean | null
+          reference_id?: string | null
           title: string
           user_id: string
         }
@@ -75,8 +77,8 @@ export interface Database {
           created_at?: string
           id?: string
           notification_type?: string
-          read?: boolean
-          reference_id?: string
+          read?: boolean | null
+          reference_id?: string | null
           title?: string
           user_id?: string
         }
@@ -84,86 +86,101 @@ export interface Database {
           {
             foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       profiles: {
         Row: {
-          avatar_url: string | null
           created_at: string
-          email: string
-          full_name: string
+          email: string | null
+          full_name: string | null
           id: string
-          role: string
-          updated_at: string
+          is_verified: boolean | null
+          phone_number: string | null
+          rating: number | null
+          role: string | null
+          total_rides: number | null
+          university: string | null
         }
         Insert: {
-          avatar_url?: string | null
           created_at?: string
-          email: string
-          full_name: string
+          email?: string | null
+          full_name?: string | null
           id: string
-          role: string
-          updated_at?: string
+          is_verified?: boolean | null
+          phone_number?: string | null
+          rating?: number | null
+          role?: string | null
+          total_rides?: number | null
+          university?: string | null
         }
         Update: {
-          avatar_url?: string | null
           created_at?: string
-          email?: string
-          full_name?: string
+          email?: string | null
+          full_name?: string | null
           id?: string
-          role?: string
-          updated_at?: string
+          is_verified?: boolean | null
+          phone_number?: string | null
+          rating?: number | null
+          role?: string | null
+          total_rides?: number | null
+          university?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       ratings: {
         Row: {
           comment: string | null
           created_at: string
           id: string
+          rated_id: string
+          rater_id: string
           rating: number
           ride_id: string
-          user_id: string
         }
         Insert: {
           comment?: string | null
           created_at?: string
           id?: string
+          rated_id: string
+          rater_id: string
           rating: number
           ride_id: string
-          user_id: string
         }
         Update: {
           comment?: string | null
           created_at?: string
           id?: string
+          rated_id?: string
+          rater_id?: string
           rating?: number
           ride_id?: string
-          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "ratings_ride_id_fkey"
-            columns: ["ride_id"]
-            referencedRelation: "rides"
+            foreignKeyName: "ratings_rated_id_fkey"
+            columns: ["rated_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ratings_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "ratings_rater_id_fkey"
+            columns: ["rater_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          }
+          },
+          {
+            foreignKeyName: "ratings_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
         ]
       }
       ride_passengers: {
@@ -192,15 +209,17 @@ export interface Database {
           {
             foreignKeyName: "ride_passengers_passenger_id_fkey"
             columns: ["passenger_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "ride_passengers_ride_id_fkey"
             columns: ["ride_id"]
+            isOneToOne: false
             referencedRelation: "rides"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       rides: {
@@ -210,18 +229,13 @@ export interface Database {
           departure_date: string
           departure_time: string
           driver_id: string
+          from_coordinates: Json | null
           from_location: string
           id: string
-          is_quick_ride: boolean
-          is_scheduled: boolean
-          is_shared: boolean
-          max_passengers: number
-          notes: string
+          notes: string | null
           price: number
-          route_preview: string | null
-          scheduled_for: string | null
-          shared_passengers: number
           status: string
+          to_coordinates: Json | null
           to_location: string
         }
         Insert: {
@@ -230,18 +244,13 @@ export interface Database {
           departure_date: string
           departure_time: string
           driver_id: string
+          from_coordinates?: Json | null
           from_location: string
           id?: string
-          is_quick_ride?: boolean
-          is_scheduled?: boolean
-          is_shared?: boolean
-          max_passengers?: number
-          notes?: string
+          notes?: string | null
           price: number
-          route_preview?: string | null
-          scheduled_for?: string | null
-          shared_passengers?: number
           status?: string
+          to_coordinates?: Json | null
           to_location: string
         }
         Update: {
@@ -250,152 +259,23 @@ export interface Database {
           departure_date?: string
           departure_time?: string
           driver_id?: string
+          from_coordinates?: Json | null
           from_location?: string
           id?: string
-          is_quick_ride?: boolean
-          is_scheduled?: boolean
-          is_shared?: boolean
-          max_passengers?: number
-          notes?: string
+          notes?: string | null
           price?: number
-          route_preview?: string | null
-          scheduled_for?: string | null
-          shared_passengers?: number
           status?: string
+          to_coordinates?: Json | null
           to_location?: string
         }
         Relationships: [
           {
             foreignKeyName: "rides_driver_id_fkey"
             columns: ["driver_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      quick_routes: {
-        Row: {
-          created_at: string
-          distance: number
-          estimated_duration: number
-          from_coordinates: string
-          from_location: string
-          id: string
-          is_active: boolean
-          to_coordinates: string
-          to_location: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          distance: number
-          estimated_duration: number
-          from_coordinates: string
-          from_location: string
-          id?: string
-          is_active?: boolean
-          to_coordinates: string
-          to_location: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          distance?: number
-          estimated_duration?: number
-          from_coordinates?: string
-          from_location?: string
-          id?: string
-          is_active?: boolean
-          to_coordinates?: string
-          to_location?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      ride_schedules: {
-        Row: {
-          created_at: string
-          id: string
-          ride_id: string
-          schedule_dates: string[] | null
-          schedule_days: string[] | null
-          schedule_type: "daily" | "weekly" | "custom"
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          ride_id: string
-          schedule_dates?: string[] | null
-          schedule_days?: string[] | null
-          schedule_type: "daily" | "weekly" | "custom"
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          ride_id?: string
-          schedule_dates?: string[] | null
-          schedule_days?: string[] | null
-          schedule_type?: "daily" | "weekly" | "custom"
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ride_schedules_ride_id_fkey"
-            columns: ["ride_id"]
-            referencedRelation: "rides"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      ride_shares: {
-        Row: {
-          created_at: string
-          id: string
-          ride_id: string
-          shared_with_id: string
-          sharer_id: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          ride_id: string
-          shared_with_id: string
-          sharer_id: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          ride_id?: string
-          shared_with_id?: string
-          sharer_id?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ride_shares_ride_id_fkey"
-            columns: ["ride_id"]
-            referencedRelation: "rides"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ride_shares_shared_with_id_fkey"
-            columns: ["shared_with_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "ride_shares_sharer_id_fkey"
-            columns: ["sharer_id"]
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
         ]
       }
     }
@@ -418,106 +298,106 @@ type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof Database },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof Database
   }
-  ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
+    ? R
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof Database
   }
-  ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
+      Insert: infer I
+    }
+    ? I
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof Database },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof Database
   }
-  ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
-  : never
+      Update: infer U
+    }
+    ? U
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof Database },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof Database
   }
-  ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
   ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof Database },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
   }
-  ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {

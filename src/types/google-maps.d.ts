@@ -34,6 +34,19 @@ declare global {
           OK: string;
           ZERO_RESULTS: string;
         };
+        TravelMode: {
+          DRIVING: string;
+          WALKING: string;
+          BICYCLING: string;
+          TRANSIT: string;
+        };
+        DirectionsService: new () => any;
+        DirectionsRenderer: new (options?: any) => any;
+        geometry: {
+          encoding: {
+            decodePath: (path: string) => any[];
+          };
+        };
       };
     };
   }

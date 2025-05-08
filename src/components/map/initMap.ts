@@ -1,28 +1,30 @@
+interface MapOptions {
+  zoom?: number;
+  center?: { lat: number; lng: number };
+  draggable?: boolean;
+  scrollwheel?: boolean;
+  disableDefaultUI?: boolean;
+}
 
-import { toast } from "sonner";
+// Initialize Google Maps
+export const initMap = async (
+  container: HTMLElement, 
+  center: { lat: number; lng: number } = { lat: 37.7749, lng: -122.4194 }, 
+  zoom: number = 14,
+  options: MapOptions = {}
+): Promise<google.maps.Map> => {
+  // Wait for Google Maps to be loaded
+  if (!window.google?.maps) {
+    throw new Error('Google Maps API not loaded');
+  }
 
-export function initMap({
-  container,
-  initialCenter,
-  zoom,
-  onMapLoad,
-  onMapError,
-}: {
-  container: HTMLDivElement;
-  initialCenter: [number, number];
-  zoom: number;
-  onMapLoad: (map: google.maps.Map) => void;
-  onMapError: (e: unknown) => void;
-}) {
-  try {
-    if (!window.google || !window.google.maps) {
-      throw new Error("Google Maps API not loaded");
-    }
-
-    const [lat, lng] = initialCenter;
+  return new Promise((resolve) => {
     const mapOptions = {
-      center: { lat, lng },
       zoom,
+      center,
+      draggable: true,
+      scrollwheel: true,
+      disableDefaultUI: false,
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: true,
@@ -33,7 +35,8 @@ export function initMap({
           elementType: "labels",
           stylers: [{ visibility: "off" }]
         }
-      ]
+      ],
+      ...options
     };
 
     const map = new window.google.maps.Map(container, mapOptions);
@@ -43,18 +46,7 @@ export function initMap({
 
     // Handle map load event
     window.google.maps.event.addListenerOnce(map, 'idle', () => {
-      onMapLoad(map);
+      resolve(map);
     });
-
-    // Handle map error event
-    window.google.maps.event.addListener(map, 'error', (e) => {
-      onMapError(e);
-    });
-
-    return map;
-  } catch (error: any) {
-    toast.error(`Map initialization failed: ${error.message}`);
-    onMapError(error);
-    return null;
-  }
-}
+  });
+};
