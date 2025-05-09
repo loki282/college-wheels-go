@@ -1,7 +1,9 @@
+
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { RideMap } from '@/components/map/RideMap';
-import { Ride, getRideById, normalizeCoordinates } from '@/services/rideService';
+import { Ride, getRideById } from '@/services/rideService';
+import { normalizeCoordinates } from '@/services/rides/types';
 import { Profile } from '@/services/profileService';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -40,7 +42,7 @@ export default function LiveRideTracking() {
   const [rideStatus, setRideStatus] = useState<RideStatus>(RideStatus.DRIVER_EN_ROUTE);
   const [eta, setEta] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [routePath, setRoutePath] = useState<Array<{ lat: number; lng: number }>([]);
+  const [routePath, setRoutePath] = useState<Array<{ lat: number; lng: number }>>([]);
   const [driverProgress, setDriverProgress] = useState(0);
   
   // Load ride details

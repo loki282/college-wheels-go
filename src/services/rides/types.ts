@@ -1,4 +1,3 @@
-
 import { Profile } from '../profileService';
 
 export interface Ride {
@@ -35,6 +34,15 @@ export interface Ride {
   is_active?: boolean;
   started_at?: string;
   completed_at?: string;
+}
+
+export interface RidePassenger {
+  id: string;
+  ride_id: string;
+  passenger_id: string;
+  status: string;
+  created_at: string;
+  passenger?: Profile | null;
 }
 
 export interface RideSchedule {
@@ -74,15 +82,6 @@ export interface QuickRoute {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-}
-
-export interface RidePassenger {
-  id: string;
-  ride_id: string;
-  passenger_id: string;
-  status: string;
-  created_at: string;
-  passenger?: Profile | null;
 }
 
 export interface RoutePreview {

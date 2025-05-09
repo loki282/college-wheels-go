@@ -5,9 +5,10 @@ import { Profile } from './profileService';
 import { createNotification } from './notificationService';
 import { Ride as RideType, normalizeCoordinates } from './rides/types';
 
-// Re-export the Ride type from the rides/types file
-export { Ride } from './rides/types';
+// Re-export the normalizeCoordinates function
 export { normalizeCoordinates } from './rides/types';
+// Re-export the Ride type correctly
+export type { Ride } from './rides/types';
 
 export interface RidePassenger {
   id: string;
