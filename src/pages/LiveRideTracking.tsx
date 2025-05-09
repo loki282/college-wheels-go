@@ -63,15 +63,13 @@ export default function LiveRideTracking() {
         setRide(rideData as Ride & { driver: Profile | null });
         
         // Initialize driver location at starting point
-        if (rideData.from_coordinates) {
-          const fromCoords = normalizeCoordinates(rideData.from_coordinates);
-          if (fromCoords) {
-            // Start driver a bit away from pickup
-            setDriverLocation({
-              lat: fromCoords.lat - 0.003,
-              lng: fromCoords.lng - 0.002
-            });
-          }
+        const fromCoords = normalizeCoordinates(rideData.from_coordinates);
+        if (fromCoords) {
+          // Start driver a bit away from pickup
+          setDriverLocation({
+            lat: fromCoords.lat - 0.003,
+            lng: fromCoords.lng - 0.002
+          });
         }
         
         // Generate route preview
@@ -222,11 +220,9 @@ export default function LiveRideTracking() {
           clearInterval(simulateDriverMovement);
           
           // Final location is destination
-          if (ride && ride.to_coordinates) {
-            const destination = normalizeCoordinates(ride.to_coordinates);
-            if (destination) {
-              setDriverLocation(destination);
-            }
+          const destination = normalizeCoordinates(ride.to_coordinates);
+          if (destination) {
+            setDriverLocation(destination);
           }
           
           return 100;

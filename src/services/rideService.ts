@@ -18,29 +18,8 @@ export interface RidePassenger {
 }
 
 // Type definitions
-export interface Ride {
-  id: string;
-  driver_id: string;
-  from_location: string;
-  to_location: string;
-  departure_date: string;
-  departure_time: string;
-  available_seats: number;
-  price: number;
-  notes: string | null;
-  status: 'active' | 'completed' | 'cancelled';
-  created_at: string;
-  driver?: Profile | null;
-}
-
-export interface RidePassenger {
-  id: string;
-  ride_id: string;
-  passenger_id: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
-  created_at: string;
-  passenger?: Profile | null;
-}
+// Using RideType for clarity but re-exported as Ride
+export type Ride = RideType;
 
 export async function getAvailableRides() {
   try {

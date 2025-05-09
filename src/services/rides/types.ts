@@ -19,7 +19,7 @@ export interface Ride {
   available_seats: number;
   price: number;
   notes?: string;
-  status: string;
+  status: 'active' | 'completed' | 'cancelled';
   created_at: string;
   driver?: Profile | null;
   estimated_duration?: number;
