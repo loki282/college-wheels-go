@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { RideMap } from '@/components/map/RideMap';
-import { Ride, getRideById } from '@/services/rideService';
+import { Ride, getRideById, updateRideStatus } from '@/services/rideService';
 import { normalizeCoordinates } from '@/services/rides/types';
 import { Profile } from '@/services/profileService';
 import { useAuth } from '@/hooks/useAuth';
@@ -36,7 +36,7 @@ export default function LiveRideTracking() {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  const [ride, setRide] = useState<Ride & { driver: Profile | null } | null>(null);
+  const [ride, setRide] = useState<Ride & { driver: Profile | null, passengers: any[] } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [rideStatus, setRideStatus] = useState<RideStatus>(RideStatus.DRIVER_EN_ROUTE);
@@ -44,6 +44,7 @@ export default function LiveRideTracking() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [routePath, setRoutePath] = useState<Array<{ lat: number; lng: number }>>([]);
   const [driverProgress, setDriverProgress] = useState(0);
+  const [hasInitialized, setHasInitialized] = useState(false);
   
   // Load ride details
   useEffect(() => {
@@ -52,34 +53,47 @@ export default function LiveRideTracking() {
       
       setIsLoading(true);
       try {
+        console.log("Fetching ride data for ID:", id);
         const rideData = await getRideById(id);
         
         if (!rideData) {
+          console.error("No ride data returned");
           toast.error("Ride not found");
           navigate("/rides");
           return;
         }
         
+        console.log("Ride data fetched:", rideData);
+        
         // Ensure ride data is properly typed
-        const typedRideData = rideData as Ride & { driver: Profile | null };
+        const typedRideData = rideData as Ride & { driver: Profile | null, passengers: any[] };
         setRide(typedRideData);
         
         // Initialize driver location at starting point
         const fromCoords = normalizeCoordinates(typedRideData.from_coordinates);
         if (fromCoords) {
+          console.log("Setting initial driver location near:", fromCoords);
           // Start driver a bit away from pickup
           setDriverLocation({
             lat: fromCoords.lat - 0.003,
             lng: fromCoords.lng - 0.002
           });
+        } else {
+          console.error("Could not normalize from coordinates:", typedRideData.from_coordinates);
         }
         
         // Generate route preview
         if (typedRideData.from_coordinates && typedRideData.to_coordinates) {
           generateRoutePath(typedRideData);
+        } else {
+          console.error("Missing coordinates for route generation", {
+            from: typedRideData.from_coordinates,
+            to: typedRideData.to_coordinates
+          });
         }
         
         setIsLoading(false);
+        setHasInitialized(true);
       } catch (error) {
         console.error("Error loading ride:", error);
         toast.error("Failed to load ride information");
@@ -95,7 +109,10 @@ export default function LiveRideTracking() {
     const fromCoords = normalizeCoordinates(rideData.from_coordinates);
     const toCoords = normalizeCoordinates(rideData.to_coordinates);
     
-    if (!fromCoords || !toCoords) return;
+    if (!fromCoords || !toCoords) {
+      console.error("Failed to generate route: invalid coordinates", { fromCoords, toCoords });
+      return;
+    }
     
     // Create a path with waypoints between start and end
     const numPoints = 20;
@@ -115,6 +132,7 @@ export default function LiveRideTracking() {
       });
     }
     
+    console.log("Route path generated with", path.length, "points");
     setRoutePath(path);
     
     // Calculate estimated time (in minutes)
@@ -144,8 +162,11 @@ export default function LiveRideTracking() {
   
   // Simulate driver movement along the route
   useEffect(() => {
-    if (!routePath.length || !ride) return;
+    if (!routePath.length || !ride || !hasInitialized) {
+      return;
+    }
     
+    console.log("Setting up driver movement simulation");
     const fromCoords = normalizeCoordinates(ride.from_coordinates);
     if (!fromCoords) return;
     
@@ -219,7 +240,6 @@ export default function LiveRideTracking() {
         else {
           setRideStatus(RideStatus.COMPLETED);
           setEta(0);
-          clearInterval(simulateDriverMovement);
           
           // Final location is destination
           const destination = normalizeCoordinates(ride.to_coordinates);
@@ -232,16 +252,32 @@ export default function LiveRideTracking() {
       });
     }, 1000);
     
-    return () => clearInterval(simulateDriverMovement);
-  }, [routePath, ride]);
+    return () => {
+      console.log("Cleaning up driver movement simulation");
+      clearInterval(simulateDriverMovement);
+    };
+  }, [routePath, ride, hasInitialized]);
 
   // Handle end ride
   const handleEndRide = useCallback(() => {
     if (!id) return;
-
+    
+    console.log("Ending ride:", id);
+    
     // Add real ride completion logic here
-    toast.success("Ride completed successfully!");
-    navigate(`/ride/${id}`);
+    updateRideStatus(id, 'completed')
+      .then(success => {
+        if (success) {
+          toast.success("Ride completed successfully!");
+          navigate(`/ride/${id}`);
+        } else {
+          toast.error("Failed to complete ride");
+        }
+      })
+      .catch(error => {
+        console.error("Error completing ride:", error);
+        toast.error("Error completing ride");
+      });
   }, [id, navigate]);
 
   // Show loading state
@@ -349,10 +385,11 @@ export default function LiveRideTracking() {
       <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
         <DrawerTrigger asChild>
           <div 
-            className="absolute bottom-0 left-0 right-0 h-6 bg-background rounded-t-xl flex items-center justify-center cursor-pointer z-10"
+            className="absolute bottom-0 left-0 right-0 h-10 bg-background rounded-t-xl flex items-center justify-center cursor-pointer z-10 shadow-lg"
             onClick={() => setDrawerOpen(true)}
           >
             <ChevronUp className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground ml-2">Ride Details</span>
           </div>
         </DrawerTrigger>
         

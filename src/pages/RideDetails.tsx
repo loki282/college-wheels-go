@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { GlassContainer } from "@/components/ui/glass-container";
@@ -37,16 +38,22 @@ export default function RideDetails() {
       if (!id) return;
 
       setIsLoading(true);
-      const rideData = await getRideById(id);
+      try {
+        const rideData = await getRideById(id);
 
-      if (rideData) {
-        setRide(rideData as (Ride & { driver: Profile | null, passengers: any[] }));
-      } else {
-        toast.error("Ride not found");
+        if (rideData) {
+          setRide(rideData as (Ride & { driver: Profile | null, passengers: any[] }));
+        } else {
+          toast.error("Ride not found");
+          navigate("/rides");
+        }
+      } catch (error) {
+        console.error("Error fetching ride:", error);
+        toast.error("Failed to load ride details");
         navigate("/rides");
+      } finally {
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
     loadRide();
@@ -75,6 +82,8 @@ export default function RideDetails() {
               onClick: () => promptRatePassenger(),
             },
           });
+        } else {
+          toast.success(`Ride marked as ${status}`);
         }
       } else {
         toast.error(`Failed to mark ride as ${status}`);
@@ -90,7 +99,7 @@ export default function RideDetails() {
   const handleStartRide = () => {
     if (!id) return;
     
-    // In a real app, you would update the ride status in the database here
+    console.log("Starting ride navigation for:", id);
     toast.success('Ride started! Navigating to tracking view...');
     // Navigate to the tracking page
     navigate(`/ride/${id}/tracking`);

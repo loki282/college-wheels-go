@@ -23,10 +23,23 @@ export function RidesList({ rides, type, onUpdateRideStatus, onUpdateBookingStat
 
   const handleUpdateRideStatus = async (rideId: string, status: 'completed' | 'cancelled') => {
     try {
+      console.log(`RidesList: Updating ride status ${rideId} to ${status}`);
       await onUpdateRideStatus(rideId, status);
+      toast.success(`Ride ${status === 'completed' ? 'completed' : 'cancelled'} successfully`);
     } catch (error) {
       console.error(`Error updating ride ${rideId} to ${status}:`, error);
       toast.error(`Failed to update ride status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+  
+  const handleUpdateBookingStatus = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
+    try {
+      console.log(`RidesList: Updating booking status ${bookingId} to ${status}`);
+      await onUpdateBookingStatus(bookingId, status);
+      toast.success(`Booking ${status === 'confirmed' ? 'confirmed' : 'cancelled'} successfully`);
+    } catch (error) {
+      console.error(`Error updating booking ${bookingId} to ${status}:`, error);
+      toast.error(`Failed to update booking status: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -38,7 +51,7 @@ export function RidesList({ rides, type, onUpdateRideStatus, onUpdateBookingStat
             ride={ride}
             type={type}
             onUpdateRideStatus={handleUpdateRideStatus}
-            onUpdateBookingStatus={onUpdateBookingStatus}
+            onUpdateBookingStatus={handleUpdateBookingStatus}
           />
         </Card3D>
       ))}
