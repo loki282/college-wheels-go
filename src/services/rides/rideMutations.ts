@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Ride } from './types';
+import { Ride, RidePassenger } from './types';
 
 export async function createRide(rideData: {
   from_location: string;
@@ -55,5 +55,27 @@ export async function createRide(rideData: {
     console.error('Error creating ride:', error);
     toast.error('Failed to create ride');
     return null;
+  }
+}
+
+// Add the missing getRidePassengers function
+export async function getRidePassengers(rideId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('ride_passengers')
+      .select(`
+        *,
+        passenger:profiles(*)
+      `)
+      .eq('ride_id', rideId);
+
+    if (error) {
+      throw error;
+    }
+
+    return data as RidePassenger[];
+  } catch (error) {
+    console.error('Error fetching ride passengers:', error);
+    return [];
   }
 }

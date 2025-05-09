@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { RideMap } from '@/components/map/RideMap';
-import { Ride, getRideById } from '@/services/rideService';
+import { Ride, getRideById, normalizeCoordinates } from '@/services/rideService';
 import { Profile } from '@/services/profileService';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -9,7 +9,6 @@ import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { normalizeCoordinates } from '@/services/rides/types';
 import { 
   Clock, 
   MapPin, 
@@ -41,7 +40,7 @@ export default function LiveRideTracking() {
   const [rideStatus, setRideStatus] = useState<RideStatus>(RideStatus.DRIVER_EN_ROUTE);
   const [eta, setEta] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [routePath, setRoutePath] = useState<Array<{ lat: number; lng: number }>>([]);
+  const [routePath, setRoutePath] = useState<Array<{ lat: number; lng: number }>([]);
   const [driverProgress, setDriverProgress] = useState(0);
   
   // Load ride details
@@ -266,8 +265,8 @@ export default function LiveRideTracking() {
     );
   }
 
-  const fromCoords = normalizeCoordinates(ride.from_coordinates);
-  const toCoords = normalizeCoordinates(ride.to_coordinates);
+  const fromCoords = normalizeCoordinates(ride?.from_coordinates);
+  const toCoords = normalizeCoordinates(ride?.to_coordinates);
 
   if (!fromCoords || !toCoords) {
     return (
