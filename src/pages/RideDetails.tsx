@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { GlassContainer } from "@/components/ui/glass-container";
@@ -10,6 +11,7 @@ import {
   MapPin as MapPinIcon,
   User as UserIcon,
   Star as StarIcon,
+  Navigation as NavigationIcon
 } from "lucide-react";
 import { RideMap } from "@/components/map/RideMap";
 import { RidePassengers } from "@/components/rides/RidePassengers";
@@ -76,6 +78,15 @@ export default function RideDetails() {
     }
   };
 
+  const handleStartRide = () => {
+    if (!id) return;
+    
+    // In a real app, you would update the ride status in the database here
+    toast.success('Ride started! Navigating to tracking view...');
+    // Navigate to the tracking page
+    navigate(`/ride/${id}/tracking`);
+  };
+
   const promptRatePassenger = () => {
     const confirmedPassengers = ride?.passengers.filter(p => p.status === 'confirmed');
     if (confirmedPassengers && confirmedPassengers.length > 0) {
@@ -137,6 +148,15 @@ export default function RideDetails() {
               disabled={isUpdating}
             >
               Cancel Ride
+            </Button>
+            <Button
+              variant="outline"
+              className="border-yellow-500 text-yellow-500 hover:bg-yellow-500 hover:text-yellow-50"
+              onClick={handleStartRide}
+              disabled={isUpdating}
+            >
+              <NavigationIcon className="mr-2 h-4 w-4" />
+              Start Ride
             </Button>
             <Button
               className="bg-electricblue hover:bg-electricblue/90"

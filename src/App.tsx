@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import RideDetails from "./pages/RideDetails";
+import LiveRideTracking from "./pages/LiveRideTracking";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,13 @@ const App = () => (
                 <Route path="/messages" element={<Messages />} />
                 <Route path="/profile" element={<Profile />} />
               </Route>
+              
+              {/* Standalone Routes (without app layout) */}
+              <Route path="/ride/:id/tracking" element={
+                <ProtectedRoute>
+                  <LiveRideTracking />
+                </ProtectedRoute>
+              } />
 
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />

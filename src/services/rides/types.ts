@@ -1,4 +1,3 @@
-
 import { Profile } from '../profileService';
 
 export interface Ride {
@@ -32,6 +31,9 @@ export interface Ride {
   fare_estimate?: number;
   is_shared?: boolean;
   shared_passengers?: number;
+  is_active?: boolean;
+  started_at?: string;
+  completed_at?: string;
 }
 
 export interface RideSchedule {
@@ -90,4 +92,21 @@ export interface RoutePreview {
     strokeColor: string;
     strokeWeight: number;
   };
+}
+
+// Add a helper function to normalize coordinates
+export function normalizeCoordinates(coordinates: string | { lat: number; lng: number; } | undefined): 
+  { lat: number; lng: number; } | undefined {
+  if (!coordinates) return undefined;
+  
+  if (typeof coordinates === 'string') {
+    try {
+      return JSON.parse(coordinates);
+    } catch (e) {
+      console.error("Failed to parse coordinates:", e);
+      return undefined;
+    }
+  }
+  
+  return coordinates;
 }

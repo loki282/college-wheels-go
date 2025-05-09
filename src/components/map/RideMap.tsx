@@ -14,6 +14,7 @@ type RideMapProps = {
     position: { lat: number; lng: number };
     title?: string;
     icon?: string;
+    animate?: boolean;
   }>;
   polyline?: Array<{ lat: number; lng: number }>;
   children?: React.ReactNode;
@@ -26,6 +27,7 @@ type RideMapProps = {
     name: string;
     coordinates: { lat: number; lng: number };
   };
+  autoFitBounds?: boolean;
 };
 
 export const RideMap: React.FC<RideMapProps> = ({
@@ -40,6 +42,7 @@ export const RideMap: React.FC<RideMapProps> = ({
   className = '',
   pickupLocation,
   dropLocation,
+  autoFitBounds = true,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<google.maps.Map | null>(null);
@@ -151,8 +154,8 @@ export const RideMap: React.FC<RideMapProps> = ({
             },
           });
           
-          // If both pickup and dropoff are provided, fit bounds to show both
-          if (pickupLocation?.coordinates) {
+          // If both pickup and dropoff are provided and autoFitBounds is enabled, fit bounds to show both
+          if (pickupLocation?.coordinates && autoFitBounds) {
             const bounds = new window.google.maps.LatLngBounds();
             bounds.extend(pickupLocation.coordinates);
             bounds.extend(dropLocation.coordinates);
@@ -178,7 +181,7 @@ export const RideMap: React.FC<RideMapProps> = ({
       window.removeEventListener('resize', handleResize);
       mapInitializedRef.current = false;
     };
-  }, [showUserLocation, initialCenter, zoom, pickupLocation, dropLocation, userLocation]);
+  }, [showUserLocation, initialCenter, zoom, pickupLocation, dropLocation, userLocation, autoFitBounds]);
 
   // Effect to handle map clicks
   useEffect(() => {
@@ -213,17 +216,63 @@ export const RideMap: React.FC<RideMapProps> = ({
 
     // Add new markers
     if (mapInstance.current) {
+      const bounds = new window.google.maps.LatLngBounds();
+      let shouldUseBounds = autoFitBounds && markers.length > 1;
+      
       markers.forEach((markerInfo) => {
+        // Process icon
+        let icon: google.maps.Symbol | string = markerInfo.icon || "";
+        
+        // If icon is emoji or text, create a custom marker
+        if (typeof icon === 'string' && icon.length <= 2) {
+          icon = {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            fillColor: markerInfo.title === "Driver" ? "#4285F4" : 
+                      icon === "🔵" ? "#4CAF50" : 
+                      icon === "🔴" ? "#F44336" : "#FFC107",
+            fillOpacity: 1,
+            strokeColor: "#FFFFFF",
+            strokeWeight: 2,
+            scale: 8,
+            labelOrigin: new window.google.maps.Point(0, 0)
+          };
+        }
+        
         const marker = new window.google.maps.Marker({
           position: markerInfo.position,
           map: mapInstance.current,
           title: markerInfo.title,
-          icon: markerInfo.icon,
+          icon: icon,
+          label: typeof markerInfo.icon === 'string' && markerInfo.icon.length <= 2 ? {
+            text: markerInfo.icon,
+            color: "#FFFFFF",
+            fontSize: "12px",
+            fontWeight: "bold"
+          } : undefined,
+          animation: markerInfo.animate ? window.google.maps.Animation.BOUNCE : undefined
         });
+        
         markersRef.current.push(marker);
+        
+        if (shouldUseBounds) {
+          bounds.extend(markerInfo.position);
+        }
       });
+      
+      // Fit map to show all markers if there are multiple
+      if (shouldUseBounds) {
+        mapInstance.current.fitBounds(bounds);
+        // Add some padding
+        const listener = window.google.maps.event.addListenerOnce(
+          mapInstance.current, 
+          'bounds_changed', 
+          () => {
+            mapInstance.current?.setZoom((mapInstance.current.getZoom() || 14) - 1);
+          }
+        );
+      }
     }
-  }, [markers, mapInstance.current]);
+  }, [markers, mapInstance.current, autoFitBounds]);
 
   // Effect to handle polylines
   useEffect(() => {
@@ -244,8 +293,17 @@ export const RideMap: React.FC<RideMapProps> = ({
         map: mapInstance.current,
       });
       polylineRef.current = newPolyline;
+      
+      // If autoFitBounds is true, fit bounds to show the entire polyline
+      if (autoFitBounds) {
+        const bounds = new window.google.maps.LatLngBounds();
+        polyline.forEach(point => {
+          bounds.extend(point);
+        });
+        mapInstance.current.fitBounds(bounds);
+      }
     }
-  }, [polyline, mapInstance.current]);
+  }, [polyline, mapInstance.current, autoFitBounds]);
 
   return (
     <div className={`relative ${className}`}>
