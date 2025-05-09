@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { GlassContainer } from "@/components/ui/glass-container";
@@ -136,8 +135,8 @@ export default function RideDetails() {
   const isActive = ride.status === 'active';
 
   // Extract coordinates using the normalizeCoordinates helper function
-  const pickupCoordinates = normalizeCoordinates(ride.from_coordinates);
-  const dropCoordinates = normalizeCoordinates(ride.to_coordinates);
+  const pickupCoordinates = normalizeCoordinates(ride?.from_coordinates);
+  const dropCoordinates = normalizeCoordinates(ride?.to_coordinates);
 
   return (
     <div className="pt-6 pb-20 px-4 animate-fade-in">
