@@ -10,6 +10,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { normalizeCoordinates } from '@/services/rides/types';
 import { 
   Clock, 
   MapPin, 
@@ -20,7 +21,6 @@ import {
   Car,
   User
 } from 'lucide-react';
-import { RoutePreview } from '@/services/rides/types';
 
 // Ride status enum
 enum RideStatus {
@@ -64,15 +64,14 @@ export default function LiveRideTracking() {
         
         // Initialize driver location at starting point
         if (rideData.from_coordinates) {
-          const fromCoords = typeof rideData.from_coordinates === 'string'
-            ? JSON.parse(rideData.from_coordinates)
-            : rideData.from_coordinates;
-            
-          // Start driver a bit away from pickup
-          setDriverLocation({
-            lat: fromCoords.lat - 0.003,
-            lng: fromCoords.lng - 0.002
-          });
+          const fromCoords = normalizeCoordinates(rideData.from_coordinates);
+          if (fromCoords) {
+            // Start driver a bit away from pickup
+            setDriverLocation({
+              lat: fromCoords.lat - 0.003,
+              lng: fromCoords.lng - 0.002
+            });
+          }
         }
         
         // Generate route preview
@@ -92,14 +91,11 @@ export default function LiveRideTracking() {
   }, [id, navigate]);
 
   // Generate a simulated route path between pickup and destination
-  const generateRoutePath = (rideData: any) => {
-    const fromCoords = typeof rideData.from_coordinates === 'string'
-      ? JSON.parse(rideData.from_coordinates)
-      : rideData.from_coordinates;
-      
-    const toCoords = typeof rideData.to_coordinates === 'string'
-      ? JSON.parse(rideData.to_coordinates)
-      : rideData.to_coordinates;
+  const generateRoutePath = (rideData: Ride) => {
+    const fromCoords = normalizeCoordinates(rideData.from_coordinates);
+    const toCoords = normalizeCoordinates(rideData.to_coordinates);
+    
+    if (!fromCoords || !toCoords) return;
     
     // Create a path with waypoints between start and end
     const numPoints = 20;
@@ -150,9 +146,8 @@ export default function LiveRideTracking() {
   useEffect(() => {
     if (!routePath.length || !ride) return;
     
-    const fromCoords = typeof ride.from_coordinates === 'string'
-      ? JSON.parse(ride.from_coordinates)
-      : ride.from_coordinates;
+    const fromCoords = normalizeCoordinates(ride.from_coordinates);
+    if (!fromCoords) return;
     
     const simulateDriverMovement = setInterval(() => {
       setDriverProgress(prev => {
@@ -190,8 +185,9 @@ export default function LiveRideTracking() {
           if (prev === 25) {
             setRideStatus(RideStatus.IN_PROGRESS);
             // Reset ETA to destination
-            if (ride && ride.estimated_duration) {
-              setEta(ride.estimated_duration);
+            if (ride) {
+              // Use a default duration of 15 minutes if not specified
+              setEta(ride.estimated_duration || 15);
             } else {
               // Default 15 minutes if no estimated duration
               setEta(15);
@@ -227,11 +223,10 @@ export default function LiveRideTracking() {
           
           // Final location is destination
           if (ride && ride.to_coordinates) {
-            const destination = typeof ride.to_coordinates === 'string'
-              ? JSON.parse(ride.to_coordinates)
-              : ride.to_coordinates;
-            
-            setDriverLocation(destination);
+            const destination = normalizeCoordinates(ride.to_coordinates);
+            if (destination) {
+              setDriverLocation(destination);
+            }
           }
           
           return 100;
@@ -276,13 +271,21 @@ export default function LiveRideTracking() {
     );
   }
 
-  const fromCoords = typeof ride.from_coordinates === 'string'
-    ? JSON.parse(ride.from_coordinates)
-    : ride.from_coordinates;
-    
-  const toCoords = typeof ride.to_coordinates === 'string'
-    ? JSON.parse(ride.to_coordinates)
-    : ride.to_coordinates;
+  const fromCoords = normalizeCoordinates(ride.from_coordinates);
+  const toCoords = normalizeCoordinates(ride.to_coordinates);
+
+  if (!fromCoords || !toCoords) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <AlertTriangle size={48} className="text-destructive mb-4" />
+        <h2 className="text-2xl font-bold mb-2">Invalid Ride Data</h2>
+        <p className="text-muted-foreground mb-6">This ride has invalid location coordinates.</p>
+        <Button onClick={() => navigate("/rides")}>
+          Return to My Rides
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen relative">
@@ -290,7 +293,7 @@ export default function LiveRideTracking() {
       <div className="absolute top-0 left-0 right-0 bg-background/80 backdrop-blur-lg z-10 p-4">
         <div className="flex justify-between items-center">
           <div>
-            <Badge variant={rideStatus === RideStatus.COMPLETED ? "success" : "secondary"} className="mb-1 animate-pulse">
+            <Badge variant={rideStatus === RideStatus.COMPLETED ? "secondary" : "secondary"} className="mb-1 animate-pulse">
               {rideStatus}
             </Badge>
             <div className="flex items-center text-sm">

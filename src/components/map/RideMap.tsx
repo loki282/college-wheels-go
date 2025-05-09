@@ -1,8 +1,8 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { initMap } from './initMap';
 import { Button } from '../ui/button';
 import { Loader2, MapPin } from 'lucide-react';
+import { normalizeCoordinates } from '@/services/rides/types';
 
 type RideMapProps = {
   height?: string;

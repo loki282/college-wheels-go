@@ -17,6 +17,7 @@ import { RideMap } from "@/components/map/RideMap";
 import { RidePassengers } from "@/components/rides/RidePassengers";
 import { Ride, getRideById, updateRideStatus } from "@/services/rideService";
 import { Profile } from "@/services/profileService";
+import { normalizeCoordinates } from "@/services/rides/types";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { RatingForm } from "@/components/ratings/RatingForm";
@@ -134,6 +135,10 @@ export default function RideDetails() {
   const isCancelled = ride.status === 'cancelled';
   const isActive = ride.status === 'active';
 
+  // Extract coordinates using the normalizeCoordinates helper function
+  const pickupCoordinates = normalizeCoordinates(ride.from_coordinates);
+  const dropCoordinates = normalizeCoordinates(ride.to_coordinates);
+
   return (
     <div className="pt-6 pb-20 px-4 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -244,17 +249,13 @@ export default function RideDetails() {
           <div className="h-[300px] rounded-lg overflow-hidden">
             <RideMap
               className="h-full"
-              pickupLocation={ride?.from_coordinates ? {
+              pickupLocation={pickupCoordinates ? {
                 name: ride.from_location,
-                coordinates: typeof ride.from_coordinates === 'string' 
-                  ? JSON.parse(ride.from_coordinates) 
-                  : ride.from_coordinates
+                coordinates: pickupCoordinates
               } : undefined}
-              dropLocation={ride?.to_coordinates ? {
+              dropLocation={dropCoordinates ? {
                 name: ride.to_location,
-                coordinates: typeof ride.to_coordinates === 'string'
-                  ? JSON.parse(ride.to_coordinates)
-                  : ride.to_coordinates
+                coordinates: dropCoordinates
               } : undefined}
             />
           </div>

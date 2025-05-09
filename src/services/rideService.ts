@@ -2,6 +2,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Profile } from './profileService';
 import { createNotification } from './notificationService';
+import { Ride as RideType, normalizeCoordinates } from './rides/types';
+
+// Re-export the Ride type from the rides/types file
+export type { Ride } from './rides/types';
+export { normalizeCoordinates } from './rides/types';
+
+export interface RidePassenger {
+  id: string;
+  ride_id: string;
+  passenger_id: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  created_at: string;
+  passenger?: Profile | null;
+}
 
 // Type definitions
 export interface Ride {
@@ -165,11 +179,14 @@ export async function getRideById(rideId: string) {
       throw passengersError;
     }
 
-    return {
+    // Process data to ensure coordinates are properly formatted
+    const rideWithFormattedData = {
       ...data,
       driver: data.driver || null,
       passengers: passengers || []
     };
+
+    return rideWithFormattedData;
   } catch (error) {
     console.error('Error fetching ride details:', error);
     toast.error('Failed to load ride details');
