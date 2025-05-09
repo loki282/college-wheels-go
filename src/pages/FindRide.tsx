@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { GlassContainer } from "@/components/ui/glass-container";
@@ -108,7 +107,7 @@ export default function FindRide() {
     setTimeout(() => setIsSearching(false), 500);
   };
 
-  const handleRideSelect = (ride: Ride & { driver: Profile | null }) => {
+  const handleRideSelect = async (ride: import('@/services/rides/types').Ride & { driver: import('@/services/profileService').Profile }) => {
     if (!ride) return;
     setSelectedRide(ride);
     setShowExpandedCard(true);
@@ -162,7 +161,7 @@ export default function FindRide() {
             <RideMap
               className="h-full"
               showUserLocation={true}
-              initialCenter={from?.coordinates ? { lat: from.coordinates.lat, lng: from.coordinates.lng } : undefined}
+              initialCenter={from?.coordinates ? [from.coordinates.lng, from.coordinates.lat] : undefined}
             />
             <div
               className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-background/80 backdrop-blur-sm rounded-full p-2 cursor-pointer hover:bg-background/90 transition-all"

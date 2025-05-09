@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -8,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { RideMap } from "@/components/map/RideMap";
 import { Navigation2 } from "lucide-react";
 import { getRideById } from "@/services/rideService";
-import { RideHeader } from "@/components/rides/RideHeader";
+import { RideHeader } from "@/components/ride/RideHeader";
 import { Ride } from "@/services/rides/types";
 import { Profile } from "@/services/profileService";
 import {
@@ -34,16 +33,18 @@ const RideDetails = () => {
     data: ride,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["ride", id],
-    queryFn: () => {
+  } = useQuery(
+    ["ride", id],
+    () => {
       if (!id) {
         throw new Error("Ride ID is required");
       }
       return getRideById(id);
     },
-    retry: false,
-  });
+    {
+      retry: false,
+    }
+  );
 
   // Get coordinates for the map
   const getFromCoordinates = () => {
@@ -51,7 +52,7 @@ const RideDetails = () => {
     
     try {
       if (typeof ride.from_coordinates === 'string') {
-        return JSON.parse(ride.from_coordinates as string);
+        return JSON.parse(ride.from_coordinates);
       }
       return ride.from_coordinates;
     } catch (e) {
@@ -65,7 +66,7 @@ const RideDetails = () => {
     
     try {
       if (typeof ride.to_coordinates === 'string') {
-        return JSON.parse(ride.to_coordinates as string);
+        return JSON.parse(ride.to_coordinates);
       }
       return ride.to_coordinates;
     } catch (e) {

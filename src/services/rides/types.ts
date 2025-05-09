@@ -39,7 +39,6 @@ export interface Ride {
   };
   ride_status?: 'awaiting' | 'arriving' | 'in_progress' | 'completed';
   eta_minutes?: number;
-  passengers?: RidePassenger[];
 }
 
 export interface RideSchedule {
