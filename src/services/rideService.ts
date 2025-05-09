@@ -1,17 +1,14 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Profile } from './profileService';
 import { createNotification } from './notificationService';
-import { Ride as RideType, normalizeCoordinates, RidePassenger as RidePassengerType } from './rides/types';
+import { normalizeCoordinates, RidePassenger as RidePassengerType } from './rides/types';
+import type { Ride } from './rides/types';
 
 // Re-export the normalizeCoordinates function
 export { normalizeCoordinates } from './rides/types';
 // Re-export the Ride type correctly
 export type { Ride } from './rides/types';
-
-// Using RideType throughout this file to avoid confusion with re-exported type
-export type Ride = RideType;
 
 export interface RidePassenger {
   id: string;
@@ -21,9 +18,6 @@ export interface RidePassenger {
   created_at: string;
   passenger?: Profile | null;
 }
-
-// Using RideType throughout this file to avoid confusion with re-exported type
-export type Ride = RideType;
 
 export async function getAvailableRides() {
   try {
