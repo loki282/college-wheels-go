@@ -2,6 +2,7 @@
 import { Card3D } from "@/components/ui/card-3d";
 import { RideCard } from "./RideCard";
 import { EmptyState } from "./EmptyState";
+import { toast } from "sonner";
 
 interface RidesListProps {
   rides: any[];
@@ -20,6 +21,15 @@ export function RidesList({ rides, type, onUpdateRideStatus, onUpdateBookingStat
     );
   }
 
+  const handleUpdateRideStatus = async (rideId: string, status: 'completed' | 'cancelled') => {
+    try {
+      await onUpdateRideStatus(rideId, status);
+    } catch (error) {
+      console.error(`Error updating ride ${rideId} to ${status}:`, error);
+      toast.error(`Failed to update ride status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {rides.map(ride => (
@@ -27,7 +37,7 @@ export function RidesList({ rides, type, onUpdateRideStatus, onUpdateBookingStat
           <RideCard
             ride={ride}
             type={type}
-            onUpdateRideStatus={onUpdateRideStatus}
+            onUpdateRideStatus={handleUpdateRideStatus}
             onUpdateBookingStatus={onUpdateBookingStatus}
           />
         </Card3D>

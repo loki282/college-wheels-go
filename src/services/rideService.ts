@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Profile } from './profileService';
@@ -14,7 +15,7 @@ export interface RidePassenger {
   id: string;
   ride_id: string;
   passenger_id: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   created_at: string;
   passenger?: Profile | null;
 }
@@ -213,13 +214,24 @@ export async function createRide(rideData: {
 
 export async function updateRideStatus(rideId: string, status: 'active' | 'completed' | 'cancelled') {
   try {
-    const { data: sessionData } = await supabase.auth.getSession();
+    console.log(`Updating ride ${rideId} to status: ${status}`);
+    
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      console.error('Session error:', sessionError);
+      toast.error('Authentication error');
+      return false;
+    }
 
     if (!sessionData.session?.user) {
+      console.error('No authenticated user found');
       toast.error('You must be logged in to update a ride');
       return false;
     }
 
+    const userId = sessionData.session.user.id;
+    
     // First check if the user is the driver of this ride
     const { data: ride, error: rideError } = await supabase
       .from('rides')
@@ -228,20 +240,25 @@ export async function updateRideStatus(rideId: string, status: 'active' | 'compl
       .single();
 
     if (rideError) {
-      throw rideError;
+      console.error('Error fetching ride:', rideError);
+      toast.error('Failed to verify ride ownership');
+      return false;
     }
 
-    if (ride.driver_id !== sessionData.session.user.id) {
+    if (ride.driver_id !== userId) {
+      console.error('User is not the ride driver');
       toast.error('You can only update rides that you created');
       return false;
     }
 
+    // Update the ride status
     const { error } = await supabase
       .from('rides')
       .update({ status })
       .eq('id', rideId);
 
     if (error) {
+      console.error('Error updating ride status:', error);
       throw error;
     }
 
@@ -254,6 +271,7 @@ export async function updateRideStatus(rideId: string, status: 'active' | 'compl
         .eq('status', 'confirmed');
 
       if (bookingError) {
+        console.error('Error updating booking status:', bookingError);
         throw bookingError;
       }
     }
@@ -262,7 +280,7 @@ export async function updateRideStatus(rideId: string, status: 'active' | 'compl
 
     // Get passengers to notify them
     if (status === 'completed' || status === 'cancelled') {
-      const { data: passengers } = await supabase
+      const { data: passengers, error: passengersError } = await supabase
         .from('ride_passengers')
         .select(`
           passenger_id,
@@ -271,17 +289,25 @@ export async function updateRideStatus(rideId: string, status: 'active' | 'compl
         .eq('ride_id', rideId)
         .eq('status', 'confirmed');
 
+      if (passengersError) {
+        console.error('Error fetching passengers:', passengersError);
+      }
+
       if (passengers && passengers.length > 0) {
         // Notify each passenger about the ride status change
-        passengers.forEach(async (passenger) => {
-          await createNotification(
-            passenger.passenger_id,
-            `Ride ${status === 'completed' ? 'Completed' : 'Cancelled'}`,
-            `Your ride has been marked as ${status} by the driver.`,
-            `ride_${status}`,
-            rideId
-          );
-        });
+        for (const passenger of passengers) {
+          try {
+            await createNotification(
+              passenger.passenger_id,
+              `Ride ${status === 'completed' ? 'Completed' : 'Cancelled'}`,
+              `Your ride has been marked as ${status} by the driver.`,
+              `ride_${status}`,
+              rideId
+            );
+          } catch (notificationError) {
+            console.error('Error creating notification:', notificationError);
+          }
+        }
       }
     }
 

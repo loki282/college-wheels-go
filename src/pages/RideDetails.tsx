@@ -56,8 +56,12 @@ export default function RideDetails() {
     if (!ride || !id) return;
 
     setIsUpdating(true);
+    console.log(`Attempting to update ride ${id} to status: ${status}`);
+    
     try {
       const success = await updateRideStatus(id, status);
+      console.log(`Update status result: ${success ? 'success' : 'failure'}`);
+      
       if (success) {
         setRide({
           ...ride,
@@ -72,7 +76,12 @@ export default function RideDetails() {
             },
           });
         }
+      } else {
+        toast.error(`Failed to mark ride as ${status}`);
       }
+    } catch (error) {
+      console.error('Error updating ride status:', error);
+      toast.error(`Error updating ride: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsUpdating(false);
     }
@@ -151,7 +160,7 @@ export default function RideDetails() {
               onClick={() => handleStatusUpdate('cancelled')}
               disabled={isUpdating}
             >
-              Cancel Ride
+              {isUpdating ? 'Processing...' : 'Cancel Ride'}
             </Button>
             <Button
               variant="outline"
@@ -167,7 +176,7 @@ export default function RideDetails() {
               onClick={() => handleStatusUpdate('completed')}
               disabled={isUpdating}
             >
-              Complete Ride
+              {isUpdating ? 'Processing...' : 'Complete Ride'}
             </Button>
           </div>
         )}
