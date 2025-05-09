@@ -60,10 +60,12 @@ export default function LiveRideTracking() {
           return;
         }
         
-        setRide(rideData as Ride & { driver: Profile | null });
+        // Ensure ride data is properly typed
+        const typedRideData = rideData as Ride & { driver: Profile | null };
+        setRide(typedRideData);
         
         // Initialize driver location at starting point
-        const fromCoords = normalizeCoordinates(rideData.from_coordinates);
+        const fromCoords = normalizeCoordinates(typedRideData.from_coordinates);
         if (fromCoords) {
           // Start driver a bit away from pickup
           setDriverLocation({
@@ -73,8 +75,8 @@ export default function LiveRideTracking() {
         }
         
         // Generate route preview
-        if (rideData.from_coordinates && rideData.to_coordinates) {
-          generateRoutePath(rideData);
+        if (typedRideData.from_coordinates && typedRideData.to_coordinates) {
+          generateRoutePath(typedRideData);
         }
         
         setIsLoading(false);
