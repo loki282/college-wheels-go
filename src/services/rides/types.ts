@@ -6,11 +6,11 @@ export interface Ride {
   driver_id: string;
   from_location: string;
   to_location: string;
-  from_coordinates: {
+  from_coordinates?: {
     lat: number;
     lng: number;
   } | string;
-  to_coordinates: {
+  to_coordinates?: {
     lat: number;
     lng: number;
   } | string;
@@ -32,13 +32,6 @@ export interface Ride {
   fare_estimate?: number;
   is_shared?: boolean;
   shared_passengers?: number;
-  // For live tracking
-  driver_location?: {
-    lat: number;
-    lng: number;
-  };
-  ride_status?: 'awaiting' | 'arriving' | 'in_progress' | 'completed';
-  eta_minutes?: number;
 }
 
 export interface RideSchedule {
@@ -98,29 +91,3 @@ export interface RoutePreview {
     strokeWeight: number;
   };
 }
-
-// Live tracking specific interfaces
-export interface DriverLocation {
-  driver_id: string;
-  ride_id: string;
-  location: {
-    lat: number;
-    lng: number;
-  };
-  heading: number;
-  speed: number;
-  timestamp: string;
-}
-
-export interface LiveRideStatus {
-  ride_id: string;
-  status: 'awaiting' | 'arriving' | 'in_progress' | 'completed' | 'cancelled';
-  eta_minutes: number;
-  distance_remaining: number; // in kilometers
-  last_updated: string;
-}
-
-export type Coordinates = {
-  lat: number;
-  lng: number;
-};

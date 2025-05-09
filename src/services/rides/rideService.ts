@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Ride, RideSchedule, RideShare, QuickRoute, RoutePreview } from './types';
@@ -331,71 +332,3 @@ export async function estimateFare(distance: number, duration: number, passenger
         return null;
     }
 } 
-
-// Live tracking functions
-export async function getDriverLocation(rideId: string): Promise<{ lat: number; lng: number } | null> {
-    try {
-        // In a real implementation, this would fetch from Supabase Realtime or similar
-        // For now, we'll return a mock location
-        console.log('Getting driver location for ride:', rideId);
-        
-        // This is just a placeholder - in a real app, you would fetch this from your database
-        return { lat: 37.7749, lng: -122.4194 };
-    } catch (error) {
-        console.error('Error getting driver location:', error);
-        return null;
-    }
-}
-
-export async function updateDriverLocation(
-    rideId: string, 
-    driverId: string, 
-    location: { lat: number; lng: number },
-    heading: number = 0,
-    speed: number = 0
-): Promise<boolean> {
-    try {
-        console.log('Updating driver location:', { rideId, driverId, location, heading, speed });
-        
-        // In a real implementation, you would update this in your database
-        // For example:
-        /*
-        const { error } = await supabase
-            .from('driver_locations')
-            .upsert({
-                ride_id: rideId,
-                driver_id: driverId,
-                location,
-                heading,
-                speed,
-                updated_at: new Date().toISOString()
-            });
-        
-        if (error) throw error;
-        */
-        
-        return true;
-    } catch (error) {
-        console.error('Error updating driver location:', error);
-        return false;
-    }
-}
-
-export async function getLiveRideStatus(rideId: string) {
-    try {
-        console.log('Getting live ride status for ride:', rideId);
-        
-        // In a real implementation, you would fetch this from your database
-        // For now, we'll return mock data
-        return {
-            ride_id: rideId,
-            status: 'in_progress',
-            eta_minutes: 10,
-            distance_remaining: 5.2,
-            last_updated: new Date().toISOString()
-        };
-    } catch (error) {
-        console.error('Error getting live ride status:', error);
-        return null;
-    }
-}
